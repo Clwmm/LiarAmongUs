@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Room {{ room_id }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h1>Room {{ room_id }}</h1>
+    <h2>Welcome, {{ name }}!</h2>
+
+    <h3>Players in this room:</h3>
+    <ul id="player-list">
+        {% for player in players %}
+            <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        const roomId = "{{ room_id }}";
+        const playerList = document.getElementById("player-list");
+
+        const ws = new WebSocket(`ws://${location.host}/ws/${roomId}`);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            playerList.innerHTML = "";
+            data.players.forEach(player => {
+                const li = document.createElement("li");
+                li.textContent = player;
+                playerList.appendChild(li);
+            });
+        };
+    </script>
+</body>
+</html>
