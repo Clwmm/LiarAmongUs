@@ -5,18 +5,20 @@
 {% block content %}
     <h2>Room {{ room_id }}</h2>
     <h3>Players:</h3>
-    <ul id="player-list">
+    <div id="player-buttons" style="display: flex; flex-wrap: wrap; gap: 10px;">
         {% for player in players %}
             <li>{{ player }}</li>
         {% endfor %}
-    </ul>
+    </div>
     <button id="start-btn" style="margin-top: 1rem;">Start Game</button>
     <p id="your-question" style="margin-top: 2rem; font-weight: bold;"></p>
 
 
     <script>
         const roomId = "{{ room_id }}";
-        const playerList = document.getElementById("player-list");
+        const name = "{{ name }}";
+        const playerButtons = document.getElementById("player-buttons");
+        let hasVoted = false;
         const startBtn = document.getElementById("start-btn");
         const questionText = document.getElementById("your-question");
 
@@ -28,16 +30,55 @@
 
             if (data.action === "redirect") {
                 window.location.href = data.target || "/";
-            } else if (data.action === "start_game") {
+            }
+
+            if (data.action === "start_game") {
                 questionText.innerText = "Your question: " + data.question;
                 startBtn.style.display = "none";
-            } else if (data.players) {
-                playerList.innerHTML = "";
+                hasVoted = false;
+            }
+
+            if (data.players) {
+                playerButtons.innerHTML = "";
                 data.players.forEach(player => {
-                    const li = document.createElement("li");
-                    li.textContent = player;
-                    playerList.appendChild(li);
+                    const btn = document.createElement("button");
+                    btn.textContent = player;
+                    btn.style.padding = "10px";
+                    btn.style.minWidth = "100px";
+                    btn.style.border = "2px solid gray";
+                    btn.style.borderRadius = "6px";
+                    btn.style.background = "#222";
+                    btn.style.color = "white";
+
+                    btn.onclick = () => {
+                        if (hasVoted) return;
+
+                        // Highlight selection
+                        document.querySelectorAll("#player-buttons button").forEach(b => {
+                            b.style.borderColor = "gray";
+                        });
+                        btn.style.borderColor = "limegreen";
+
+                        // Send vote
+                        ws.send(JSON.stringify({
+                            action: "vote",
+                            voter: name,
+                            target: player
+                        }));
+                        hasVoted = true;
+                    };
+
+                    playerButtons.appendChild(btn);
                 });
+            }
+
+            if (data.action === "reveal_votes") {
+                const votes = data.votes;
+                let voteText = "🗳️ Voting results:\n\n";
+                for (const [voter, target] of Object.entries(votes)) {
+                    voteText += `${voter} ➡️ ${target}\n`;
+                }
+                alert(voteText);
             }
         };
 

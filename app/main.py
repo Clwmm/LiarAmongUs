@@ -47,6 +47,21 @@ async def join_room(room_id: int = Form(...), name: str = Form(...)):
 
     return RedirectResponse(f"/room/{room_id}?name={name}", status_code=302)
 
+async def broadcast_votes(room_id: int):
+    vote_result = votes.get(room_id, {})
+    message = {
+        "action": "reveal_votes",
+        "votes": vote_result
+    }
+    for ws in connections.get(room_id, []):
+        try:
+            await ws.send_json(message)
+        except:
+            pass
+
+    # Optional: Clear votes for next round
+    votes[room_id] = {}
+
 @app.get("/room/{room_id}", response_class=HTMLResponse)
 async def room_page(request: Request, room_id: int, name: str):
     players = rooms.get(room_id, [])
@@ -57,23 +72,10 @@ async def room_page(request: Request, room_id: int, name: str):
         "name": name
     })
 
-@app.websocket("/ws/{room_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: int):
-    await websocket.accept()
-
-    if room_id not in connections:
-        connections[room_id] = []
-    connections[room_id].append(websocket)
-
-    try:
-        while True:
-            await websocket.receive_text()  # keep connection alive
-    except WebSocketDisconnect:
-        connections[room_id].remove(websocket)
-
 # Helper function to broadcast updates
 async def broadcast_player_list(room_id: int):
     players = rooms.get(room_id, [])
+    print(players)
     data = {"players": players}
     for ws in connections.get(room_id, []):
         await ws.send_json(data)
@@ -96,11 +98,14 @@ async def start_game(room_id: int):
     same_q = questions_pool[same_idx]
     odd_q = questions_pool[odd_idx]
 
+    # Randomly choose the odd player
     odd_player = random.choice(players)
 
+    # Store used indexes, not the strings
     used.extend([same_idx, odd_idx])
     used_questions[room_id] = used
 
+    # Send question to each player
     name_to_ws = dict(zip(players, connections.get(room_id, [])))
     for name, ws in name_to_ws.items():
         try:
@@ -111,7 +116,11 @@ async def start_game(room_id: int):
         except:
             pass
 
+    # ✅ FIX: Broadcast player list after sending questions to trigger vote buttons on frontend
+    await broadcast_player_list(room_id)
+
     return JSONResponse({"message": f"Game started. Odd player: {odd_player}"})
+
 
 @app.get("/reset")
 async def reset_app():
@@ -127,6 +136,66 @@ async def reset_app():
     # Now it's safe to clear the data
     rooms.clear()
     connections.clear()
+    used_questions.clear()
 
     return RedirectResponse(f"/?error=Reset%20Success", status_code=302)
+
+
+@app.websocket("/ws/{room_id}")
+async def websocket_endpoint(websocket: WebSocket, room_id: int):
+    await websocket.accept()
+    room_id = int(room_id)
+    player_name = websocket.query_params.get("name")
+
+    # Track player
+    # if room_id not in rooms:
+    #     rooms[room_id] = []
+    # if player_name not in rooms[room_id]:
+    #     rooms[room_id].append(player_name)
+
+    if room_id not in connections:
+        connections[room_id] = []
+    connections[room_id].append(websocket)
+
+    await broadcast_player_list(room_id)
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data.get("action") == "vote":
+                voted = data.get("target")
+                voter = data.get("voter")
+                print("Voted:", voted)
+                if room_id not in votes:
+                    print("lol")
+                    votes[room_id] = {}
+                votes[room_id][voter] = voted
+                print("votes: ", len(votes[room_id]), "\tplayers: ", len(rooms[room_id]))
+                print(votes)
+
+                # When all players have voted
+                if len(votes[room_id]) == len(rooms[room_id]):
+                    await broadcast_votes(room_id)
+
+    except WebSocketDisconnect:
+        if room_id in connections and websocket in connections[room_id]:
+            connections[room_id].remove(websocket)
+        if room_id in rooms and player_name in rooms[room_id]:
+            rooms[room_id].remove(player_name)
+        await broadcast_player_list(room_id)
+
+
+# @app.websocket("/ws/{room_id}")
+# async def websocket_endpoint(websocket: WebSocket, room_id: int):
+#     await websocket.accept()
+#
+#     if room_id not in connections:
+#         connections[room_id] = []
+#     connections[room_id].append(websocket)
+#
+#     try:
+#         while True:
+#             await websocket.receive_text()  # keep connection alive
+#     except WebSocketDisconnect:
+#         connections[room_id].remove(websocket)
 
