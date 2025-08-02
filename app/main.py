@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
+import random
 
 import asyncio
 
@@ -13,8 +14,20 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-rooms: Dict[int, List[str]] = {}  # room_id -> list of names
-connections: Dict[int, List[WebSocket]] = {}  # room_id -> list of sockets
+rooms: Dict[int, List[str]] = {}  # room_id -> player names
+connections: Dict[int, List[WebSocket]] = {}  # room_id -> websocket list
+used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
+votes: Dict[int, Dict[str, str]] = {}  # room_id -> {voter_name: voted_player_name}
+
+questions_pool = [
+    "What's your favorite food?",
+    "Describe your dream vacation.",
+    "What's a skill you wish you had?",
+    "If you could switch lives with someone, who would it be?",
+    "What scares you the most?",
+    "What's your most embarrassing moment?",
+]
+
 
 @app.get("/", response_class=HTMLResponse)
 async def homepage(request: Request, error: str = None):
@@ -65,6 +78,41 @@ async def broadcast_player_list(room_id: int):
     for ws in connections.get(room_id, []):
         await ws.send_json(data)
 
+@app.post("/start_game/{room_id}")
+async def start_game(room_id: int):
+    players = rooms.get(room_id, [])
+    if len(players) < 2:
+        return JSONResponse({"error": "Not enough players"}, status_code=400)
+
+    total_questions = len(questions_pool)
+    used = used_questions.get(room_id, [])
+    available_indexes = [i for i in range(total_questions) if i not in used]
+
+    if len(available_indexes) < 2:
+        return JSONResponse({"error": "Not enough unused questions"}, status_code=400)
+
+    # Pick two indexes
+    same_idx, odd_idx = random.sample(available_indexes, 2)
+    same_q = questions_pool[same_idx]
+    odd_q = questions_pool[odd_idx]
+
+    odd_player = random.choice(players)
+
+    used.extend([same_idx, odd_idx])
+    used_questions[room_id] = used
+
+    name_to_ws = dict(zip(players, connections.get(room_id, [])))
+    for name, ws in name_to_ws.items():
+        try:
+            await ws.send_json({
+                "action": "start_game",
+                "question": odd_q if name == odd_player else same_q
+            })
+        except:
+            pass
+
+    return JSONResponse({"message": f"Game started. Odd player: {odd_player}"})
+
 @app.get("/reset")
 async def reset_app():
     # Broadcast redirect to home for all active WebSockets
@@ -80,5 +128,5 @@ async def reset_app():
     rooms.clear()
     connections.clear()
 
-    return JSONResponse({"message": "All rooms and players cleared."})
+    return RedirectResponse(f"/?error=Reset%20Success", status_code=302)
 

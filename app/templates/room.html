@@ -10,10 +10,15 @@
             <li>{{ player }}</li>
         {% endfor %}
     </ul>
+    <button id="start-btn" style="margin-top: 1rem;">Start Game</button>
+    <p id="your-question" style="margin-top: 2rem; font-weight: bold;"></p>
+
 
     <script>
         const roomId = "{{ room_id }}";
         const playerList = document.getElementById("player-list");
+        const startBtn = document.getElementById("start-btn");
+        const questionText = document.getElementById("your-question");
 
         const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
         const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
@@ -23,6 +28,9 @@
 
             if (data.action === "redirect") {
                 window.location.href = data.target || "/";
+            } else if (data.action === "start_game") {
+                questionText.innerText = "Your question: " + data.question;
+                startBtn.style.display = "none";
             } else if (data.players) {
                 playerList.innerHTML = "";
                 data.players.forEach(player => {
@@ -30,6 +38,16 @@
                     li.textContent = player;
                     playerList.appendChild(li);
                 });
+            }
+        };
+
+        startBtn.onclick = async () => {
+            const res = await fetch(`/start_game/${roomId}`, {
+                method: "POST"
+            });
+            const result = await res.json();
+            if (result.error) {
+                alert(result.error);
             }
         };
     </script>
