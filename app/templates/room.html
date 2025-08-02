@@ -20,7 +20,9 @@
         const roomId = "{{ room_id }}";
         const playerList = document.getElementById("player-list");
 
-        const ws = new WebSocket(`ws://${location.host}/ws/${roomId}`);
+        const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
+        const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
+
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
