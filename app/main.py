@@ -199,3 +199,10 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
 #     except WebSocketDisconnect:
 #         connections[room_id].remove(websocket)
 
+
+# TODO:
+#   1. Wyświetlanie odpowiedzi na całym ekranie aby pokazywać innym
+#   2. Dodanie zatwierdzenia głosowania, aby ktoś mógł naprawić błąd
+#   3. Dodanie ukrywania oryginalnego pytania po głosowaniu i pokazywaniu odpowiedzi
+#       3a. Dodanie przycisku "show" do oryginalnego pytania po grze
+#
