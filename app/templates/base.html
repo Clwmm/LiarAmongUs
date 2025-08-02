@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}FastAPI App{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <header style="background: #1f1f1f; color: white; padding: 0.6rem; text-align: center;">
+    <h2 style="margin: 0;">🎮 FastAPI Realtime Rooms</h2>
+    </header>
+
+
+    <!-- MAIN CONTENT -->
+    <main style="padding: 1em;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+<!--    <footer style="background: #eee; color: #444; text-align: center; padding: 0.5em; margin-top: 2em;">-->
+<!--        <p>&copy; 2025 FastAPI Demo. All rights reserved.</p>-->
+<!--    </footer>-->
+</body>
+</html>

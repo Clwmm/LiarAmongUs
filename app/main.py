@@ -3,6 +3,8 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import JSONResponse
+
 import asyncio
 
 from typing import List, Dict
@@ -62,3 +64,21 @@ async def broadcast_player_list(room_id: int):
     data = {"players": players}
     for ws in connections.get(room_id, []):
         await ws.send_json(data)
+
+@app.get("/reset")
+async def reset_app():
+    # Broadcast redirect to home for all active WebSockets
+    all_connections = dict(connections)  # copy to avoid iteration issues
+    for room_id, websockets in all_connections.items():
+        for ws in websockets:
+            try:
+                await ws.send_json({"action": "redirect", "target": "/"})
+            except:
+                pass  # ignore errors on dead sockets
+
+    # Now it's safe to clear the data
+    rooms.clear()
+    connections.clear()
+
+    return JSONResponse({"message": "All rooms and players cleared."})
+
