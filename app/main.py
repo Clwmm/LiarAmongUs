@@ -1,3 +1,4 @@
+from collections import defaultdict
 from fastapi import FastAPI, Request, Form, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,8 +19,9 @@ rooms: Dict[int, List[str]] = {}  # room_id -> player names
 connections: Dict[int, List[WebSocket]] = {}  # room_id -> websocket list
 used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
 current_questions: Dict[int, Dict[str, str]] = {} # room_id -> {"real_question": {real_question}, "fake_question": {fake_question}}
-answers: Dict[int, int] = {} # room_id -> number of submitted answers
-votes: Dict[int, Dict[str, str]] = {}  # room_id -> {voter_name: voted_player_name}
+current_answers: Dict[int, int] = {} # room_id -> number of submitted answers
+current_votes: Dict[int, Dict[str, str]] = {}  # room_id -> {voter_name: voted_player_name}
+current_liar: Dict[int, str] = {} # room_id -> actual liar
 
 questions_pool = [
     "What's your favorite food?",
@@ -60,7 +62,41 @@ async def broadcast_answers_submitted(room_id: int):
         except:
             pass
 
-    answers[room_id] = 0
+    current_answers[room_id] = 0
+
+async def broadcast_start_voting(room_id: int):
+    message = {
+        "action": "start_voting"
+    }
+    for ws in connections.get(room_id, []):
+        try:
+            await ws.send_json(message)
+        except:
+            pass
+
+async def broadcast_votes_submited(room_id: int):
+    room_votes = current_votes.get(room_id, {})
+    vote_counts: Dict[str, int] = defaultdict(int)
+    for voted_player in room_votes.values():
+        vote_counts[voted_player] += 1
+
+    max_votes = max(vote_counts.values())
+    top_voted_players = [player for player, votes in vote_counts.items() if votes == max_votes]
+    validVoting = len(top_voted_players) == 1
+
+    message = {
+        "action": "votes_submitted",
+        "votes": dict(vote_counts),
+        "validVoting": validVoting,
+    }
+    for ws in connections.get(room_id, []):
+        try:
+            await ws.send_json(message)
+        except:
+            pass
+
+    current_answers.pop(room_id, None)
+
 
 @app.get("/room/{room_id}", response_class=HTMLResponse)
 async def room_page(request: Request, room_id: int, name: str):
@@ -103,6 +139,7 @@ async def start_game(room_id: int):
 
     # Randomly choose the odd player
     odd_player = random.choice(players)
+    current_liar[room_id] = odd_player
 
     # Store used indexes, not the strings
     used.extend([same_idx, odd_idx])
@@ -140,6 +177,9 @@ async def reset_app():
     rooms.clear()
     connections.clear()
     used_questions.clear()
+    current_questions.clear()
+    current_answers.clear()
+    current_votes.clear()
 
     return RedirectResponse(f"/?error=Reset%20Success", status_code=302)
 
@@ -175,9 +215,22 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 # # When all players have voted
                 # if len(votes[room_id]) == len(rooms[room_id]):
                 #     await broadcast_votes(room_id)
-                answers[room_id] = answers.get(room_id, 0) + 1
-                if answers[room_id] == len(rooms[room_id]):
+                current_answers[room_id] = current_answers.get(room_id, 0) + 1
+                if current_answers[room_id] == len(rooms[room_id]):
                     await broadcast_answers_submitted(room_id)
+
+            if data.get("action") == "start_voting_request":
+                await broadcast_start_voting(room_id)
+
+            if data.get("action") == "submit_vote":
+                voted = data.get("target")
+                voter = data.get("voter")
+                if room_id not in current_votes:
+                    current_votes[room_id] = {}
+
+                current_votes[room_id][voter] = voted
+                if len(current_votes[room_id]) == len(rooms[room_id]):
+                    await broadcast_votes_submited(room_id)
 
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:

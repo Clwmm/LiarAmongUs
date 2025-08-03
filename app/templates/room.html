@@ -4,12 +4,7 @@
 
 {% block content %}
 <div class="fixed inset-0 bg-gray-900 text-white overflow-auto flex flex-col items-center py-10 px-4 space-y-5">
-    <div
-        class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">
-        Room {{ room_id }}
-    </div>
-
-    <div hidden id="revealed_answer" class="flex w-full h-1/3 mb-10 bg-red-700 text-8xl items-center justify-center rounded-4xl text-white font-semibold"></div>
+    <div class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">Room {{ room_id }}</div>
 
     <div id="header" class="flex gap-4 w-full mb-10">
       <div class="w-1/2 bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">
@@ -20,22 +15,69 @@
       </div>
     </div>
 
+    <div hidden id="revealed_answer" class="flex w-full h-1/3 mb-10 bg-red-700 text-9xl items-center justify-center rounded-4xl text-white font-semibold"></div>
+
     <div id="players-div" class="w-full space-y-5 mb-10"></div>
+
+    <div hidden id="real-question-div" class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">Real question:</div>
+    <div hidden id="real-question-text" class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center"></div>
+
+    <div hidden id="your-answer" class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">Your answer:</div>
+    <div hidden id="your-vote" class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">Your vote:</div>
+
+    <div hidden id="your-question-div" class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">Your question:</div>
+    <button hidden
+        id="your-question-toggle-button"
+        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Show your question
+    </button>
+    <div hidden id="your-question-text" class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center"></div>
 
     <button id="start-btn"
         class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
         Start Game
     </button>
 
-    <div hidden id="real-question-div" class="w-full space-y-5"></div>
-
-    <div hidden id="your-question-div" class="w-full space-y-5"></div>
-
     <button
         hidden
         id="submit-answer"
         class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
         Submit Answer
+    </button>
+
+    <button
+        hidden
+        id="start-voting-button"
+        class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Start voting
+    </button>
+
+    <button
+        hidden
+        id="submit-vote"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Submit vote
+    </button>
+
+    <button
+        hidden
+        id="vote-again-button"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Vote again
+    </button>
+
+    <button
+        hidden
+        id="show-points-button"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Show points
+    </button>
+
+    <button
+        hidden
+        id="next-round-button"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Next round
     </button>
 </div>
 
@@ -46,11 +88,24 @@
     const playersDiv = document.getElementById("players-div");
     const second_column = document.getElementById("second-column");
     const yourQuestionDiv = document.getElementById("your-question-div");
+    const yourQuestionText = document.getElementById("your-question-text");
     const realQuestionDiv = document.getElementById("real-question-div");
+    const realQuestionText = document.getElementById("real-question-text");
     const submitAnswer = document.getElementById("submit-answer");
     const header = document.getElementById("header");
     const revealedAnswer = document.getElementById("revealed_answer");
+    const yourAnswer = document.getElementById("your-answer");
+    const yourVote = document.getElementById("your-vote");
+    const yourQuestionToggleButton = document.getElementById("your-question-toggle-button");
+    const startVotingButton = document.getElementById("start-voting-button");
+    const submitVote = document.getElementById("submit-vote");
+    const showPointsButton = document.getElementById("show-points-button");
+    const voteAgainButton = document.getElementById("vote-again-button");
+    const nextRoundButton = document.getElementById("next-round-button");
     let selectedAnswer = null;
+    let answered = false;
+    let selectedVote = null;
+    let voted = false;
 
     const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
@@ -62,46 +117,27 @@
     //     }));
     // };
 
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+    function setAnswerState(question) {
+        startBtn.hidden = true;
+        submitAnswer.hidden = false;
+        yourQuestionDiv.hidden = false;
+        yourQuestionText.hidden = false;
+        yourQuestionText.textContent = question;
+        selectedAnswer = null;
+        second_column.textContent = "ANSWER";
 
-        if (data.action === "redirect") {
-            window.location.href = data.target || "/";
-        }
-
-        if (data.action === "start_game") {
-            second_column.innerHTML = "ANSWER";
-            startBtn.classList.add("hidden");
-
-            submitAnswer.hidden = false;
-
-            yourQuestionDiv.innerHTML = "";
-            yourQuestionDiv.hidden = false;
-            const yourQuestion = document.createElement("div");
-            yourQuestion.className = "w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
-            yourQuestion.innerHTML = "Your question:";
-
-            const question = document.createElement("div");
-            question.className = "w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
-            question.innerHTML = data.question;
-
-            yourQuestionDiv.appendChild(yourQuestion);
-            yourQuestionDiv.appendChild(question);
-
-            selectedAnswer = null;
-
-            const playerRows = playersDiv.querySelectorAll("div.flex");
+        const playerRows = playersDiv.querySelectorAll("div.flex");
             playerRows.forEach(row => {
                 let nameDiv = row.children[0];
                 let secondDiv = row.children[1];
-                console.log("second div:");
-                console.log(secondDiv);
 
                 const chooseBtn = document.createElement("button");
                 chooseBtn.textContent = "CHOOSE";
                 chooseBtn.className = "w-1/2 bg-green-800 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200";
 
                 chooseBtn.onclick = () => {
+                    if (answered)
+                        return;
                     // Deselect all buttons
                     playersDiv.querySelectorAll("button").forEach(btn => {
                         btn.classList.remove("bg-red-600");
@@ -118,6 +154,120 @@
                 // Replace secondDiv with chooseBtn
                 row.replaceChild(chooseBtn, secondDiv);
             });
+    }
+
+    function setDiscusionState(real_question) {
+        answered = false;
+        header.hidden = true;
+        playersDiv.hidden = true;
+        revealedAnswer.hidden = false;
+
+        revealedAnswer.textContent = selectedAnswer;
+
+        realQuestionDiv.hidden = false;
+        realQuestionText.hidden = false;
+        realQuestionText.textContent = real_question;
+
+        yourQuestionDiv.hidden = true;
+        yourQuestionText.hidden = true;
+        yourQuestionToggleButton.hidden = false;
+        startVotingButton.hidden = false;
+    }
+
+    function setVotingState() {
+        header.hidden = false;
+        revealedAnswer.hidden = true;
+        playersDiv.hidden = false;
+        yourAnswer.hidden = false;
+        yourAnswer.textContent = "Your answer: " + selectedAnswer;
+        yourQuestionText.hidden = true;
+        startVotingButton.hidden = true;
+        submitVote.hidden = false;
+        second_column.textContent = "VOTE";
+
+        const playerRows = playersDiv.querySelectorAll("div.flex");
+            playerRows.forEach(row => {
+                let nameDiv = row.children[0];
+                let secondDiv = row.children[1];
+
+                const chooseBtn = document.createElement("button");
+                chooseBtn.textContent = "VOTE";
+                chooseBtn.className = "w-1/2 bg-green-800 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200";
+
+                chooseBtn.onclick = () => {
+                    if (voted)
+                        return;
+                    // Deselect all buttons
+                    playersDiv.querySelectorAll("button").forEach(btn => {
+                        btn.classList.remove("bg-red-600");
+                        btn.classList.add("bg-green-800");
+                    });
+
+                    // Select this one
+                    chooseBtn.classList.remove("bg-green-800");
+                    chooseBtn.classList.add("bg-red-600");
+
+                    selectedVote = nameDiv.textContent.trim();
+                };
+
+                // Replace secondDiv with chooseBtn
+                row.replaceChild(chooseBtn, secondDiv);
+            });
+    }
+
+    function setVotingResultState(votes, validVoting) {
+        voted = false;
+        yourVote.hidden = false;
+        yourVote.textContent = "Your vote: " + selectedVote;
+        second_column.textContent = "VOTES";
+        yourQuestionText.hidden = true;
+
+        playersDiv.hidden = false;
+
+        const playerRows = playersDiv.querySelectorAll("div.flex");
+            playerRows.forEach(row => {
+                let nameDiv = row.children[0];
+                let secondDiv = row.children[1];
+                let name = nameDiv.textContent.trim();
+
+                const pointsDiv = document.createElement("div");
+                pointsDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
+
+                // Check if name exists in the votes object
+                if (votes.hasOwnProperty(name)) {
+                    pointsDiv.textContent = votes[name];
+                } else {
+                    pointsDiv.textContent = 0;
+                }
+
+                // Replace secondDiv with chooseBtn
+                row.replaceChild(pointsDiv, secondDiv);
+            });
+
+        if (validVoting)
+            showPointsButton.hidden = false;
+        else
+            voteAgainButton.hidden = false;
+
+    }
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.action === "redirect") {
+            window.location.href = data.target || "/";
+        }
+
+        if (data.action === "start_game") {
+            setAnswerState(data.question);
+        }
+
+        if (data.action === "answers_submitted") {
+            setDiscusionState(data.real_question);
+        }
+
+        if (data.action === "start_voting") {
+            setVotingState();
         }
 
         if (data.action === "reveal_votes") {
@@ -129,25 +279,8 @@
             alert(voteText);
         }
 
-        if (data.action === "answers_submitted") {
-            header.hidden = true;
-            playersDiv.hidden = true;
-            revealedAnswer.hidden = false;
-
-            revealedAnswer.textContent = selectedAnswer;
-
-            realQuestionDiv.innerHTML = "";
-            realQuestionDiv.hidden = false;
-            const yourQuestion = document.createElement("div");
-            yourQuestion.className = "w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
-            yourQuestion.innerHTML = "Real question:";
-
-            const question = document.createElement("div");
-            question.className = "w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
-            question.innerHTML = data.real_question;
-
-            realQuestionDiv.appendChild(yourQuestion);
-            realQuestionDiv.appendChild(question);
+        if (data.action === "votes_submitted") {
+            setVotingResultState(data.votes, data.validVoting);
         }
 
         if (data.players) {
@@ -189,13 +322,37 @@
         }
 
         ws.send(JSON.stringify({
-            action: "submit_answer",
-            voter: name,
-            target: selectedAnswer
+            action: "submit_answer"
         }));
 
-        // Optional: disable submit button or hide to prevent multiple votes
+        answered = true;
         submitAnswer.hidden = true;
+    };
+
+    submitVote.onclick = () => {
+        if (!selectedVote) {
+            alert("Please vote a player before submitting.")
+            return;
+        }
+
+        ws.send(JSON.stringify({
+            action: "submit_vote",
+            voter: name,
+            target: selectedVote
+        }));
+
+        voted = true;
+        submitVote.hidden = true;
+    };
+
+    yourQuestionToggleButton.onclick = () => {
+        yourQuestionText.hidden = !yourQuestionText.hidden;
+    };
+
+    startVotingButton.onclick = () => {
+        ws.send(JSON.stringify({
+            action: "start_voting_request"
+        }));
     };
 </script>
 {% endblock %}
