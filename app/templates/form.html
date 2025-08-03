@@ -3,39 +3,40 @@
 {% block title %}Join a Room{% endblock %}
 
 {% block content %}
-<div class="min-h-screen text-white flex flex-col items-center justify-center px-4 py-1">
-    <h2 class="text-2xl font-bold mb-6">Join a Room</h2>
+<!-- Prevent scroll and center form -->
+<div class="fixed inset-0 bg-gray-900 text-white overflow-hidden flex items-center justify-center">
+    <form method="post" action="/join" class="w-full max-w-md mx-auto px-6 py-10 bg-gray-800 rounded-2xl shadow-2xl">
+        <h2 class="text-3xl font-bold text-center mb-8">Join a Room</h2>
 
-    {% if error %}
-        <p class="text-red-400 mb-4">{{ error }}</p>
-    {% endif %}
+        {% if error %}
+            <p class="text-red-400 mb-6 text-center text-lg">{{ error }}</p>
+        {% endif %}
 
-    <form method="post" action="/join" class="w-full max-w-sm bg-gray-800 p-6 rounded-xl shadow-lg">
-        <div class="mb-4">
-            <label for="room_id" class="block text-sm font-medium mb-1">Room ID</label>
+        <div class="mb-6">
+            <label for="room_id" class="block text-base font-medium mb-2">Room ID</label>
             <input
                 type="number"
                 id="room_id"
                 name="room_id"
                 required
-                class="w-full px-3 py-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-3 rounded-md bg-gray-700 text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
         </div>
 
-        <div class="mb-6">
-            <label for="name" class="block text-sm font-medium mb-1">Your Name</label>
+        <div class="mb-8">
+            <label for="name" class="block text-base font-medium mb-2">Your Name</label>
             <input
                 type="text"
                 id="name"
                 name="name"
                 required
-                class="w-full px-3 py-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-3 rounded-md bg-gray-700 text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
         </div>
 
         <button
             type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg text-lg transition duration-200"
         >
             Join Room
         </button>
