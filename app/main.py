@@ -17,6 +17,8 @@ templates = Jinja2Templates(directory="app/templates")
 rooms: Dict[int, List[str]] = {}  # room_id -> player names
 connections: Dict[int, List[WebSocket]] = {}  # room_id -> websocket list
 used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
+current_questions: Dict[int, Dict[str, str]] = {} # room_id -> {"real_question": {real_question}, "fake_question": {fake_question}}
+answers: Dict[int, int] = {} # room_id -> number of submitted answers
 votes: Dict[int, Dict[str, str]] = {}  # room_id -> {voter_name: voted_player_name}
 
 questions_pool = [
@@ -47,11 +49,10 @@ async def join_room(room_id: int = Form(...), name: str = Form(...)):
 
     return RedirectResponse(f"/room/{room_id}?name={name}", status_code=302)
 
-async def broadcast_votes(room_id: int):
-    vote_result = votes.get(room_id, {})
+async def broadcast_answers_submitted(room_id: int):
     message = {
-        "action": "reveal_votes",
-        "votes": vote_result
+        "action": "answers_submitted",
+        "real_question": current_questions[room_id]["real_question"]
     }
     for ws in connections.get(room_id, []):
         try:
@@ -59,8 +60,7 @@ async def broadcast_votes(room_id: int):
         except:
             pass
 
-    # Optional: Clear votes for next round
-    votes[room_id] = {}
+    answers[room_id] = 0
 
 @app.get("/room/{room_id}", response_class=HTMLResponse)
 async def room_page(request: Request, room_id: int, name: str):
@@ -96,6 +96,10 @@ async def start_game(room_id: int):
     same_idx, odd_idx = random.sample(available_indexes, 2)
     same_q = questions_pool[same_idx]
     odd_q = questions_pool[odd_idx]
+    current_questions[room_id] = {
+        "real_question": same_q,
+        "fake_question": odd_q
+    }
 
     # Randomly choose the odd player
     odd_player = random.choice(players)
@@ -116,7 +120,7 @@ async def start_game(room_id: int):
             pass
 
     # ✅ FIX: Broadcast player list after sending questions to trigger vote buttons on frontend
-    await broadcast_player_list(room_id)
+    # await broadcast_player_list(room_id)
 
     return JSONResponse({"message": f"Game started. Odd player: {odd_player}"})
 
@@ -161,16 +165,19 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
     try:
         while True:
             data = await websocket.receive_json()
-            if data.get("action") == "vote":
-                voted = data.get("target")
-                voter = data.get("voter")
-                if room_id not in votes:
-                    votes[room_id] = {}
-                votes[room_id][voter] = voted
-
-                # When all players have voted
-                if len(votes[room_id]) == len(rooms[room_id]):
-                    await broadcast_votes(room_id)
+            if data.get("action") == "submit_answer":
+                # voted = data.get("target")
+                # voter = data.get("voter")
+                # if room_id not in votes:
+                #     votes[room_id] = {}
+                # votes[room_id][voter] = voted
+                #
+                # # When all players have voted
+                # if len(votes[room_id]) == len(rooms[room_id]):
+                #     await broadcast_votes(room_id)
+                answers[room_id] = answers.get(room_id, 0) + 1
+                if answers[room_id] == len(rooms[room_id]):
+                    await broadcast_answers_submitted(room_id)
 
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:
