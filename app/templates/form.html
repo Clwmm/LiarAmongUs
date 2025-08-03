@@ -3,19 +3,42 @@
 {% block title %}Join a Room{% endblock %}
 
 {% block content %}
-    <h2>Join a Room</h2>
+<div class="min-h-screen text-white flex flex-col items-center justify-center px-4 py-1">
+    <h2 class="text-2xl font-bold mb-6">Join a Room</h2>
 
     {% if error %}
-        <p style="color: red;">{{ error }}</p>
+        <p class="text-red-400 mb-4">{{ error }}</p>
     {% endif %}
 
-    <form method="post" action="/join">
-        <label for="room_id">Room ID:</label>
-        <input type="number" id="room_id" name="room_id" required><br><br>
+    <form method="post" action="/join" class="w-full max-w-sm bg-gray-800 p-6 rounded-xl shadow-lg">
+        <div class="mb-4">
+            <label for="room_id" class="block text-sm font-medium mb-1">Room ID</label>
+            <input
+                type="number"
+                id="room_id"
+                name="room_id"
+                required
+                class="w-full px-3 py-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+        </div>
 
-        <label for="name">Your Name:</label>
-        <input type="text" id="name" name="name" required><br><br>
+        <div class="mb-6">
+            <label for="name" class="block text-sm font-medium mb-1">Your Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                class="w-full px-3 py-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+        </div>
 
-        <button type="submit">Join Room</button>
+        <button
+            type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+        >
+            Join Room
+        </button>
     </form>
+</div>
 {% endblock %}

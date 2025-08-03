@@ -75,7 +75,6 @@ async def room_page(request: Request, room_id: int, name: str):
 # Helper function to broadcast updates
 async def broadcast_player_list(room_id: int):
     players = rooms.get(room_id, [])
-    print(players)
     data = {"players": players}
     for ws in connections.get(room_id, []):
         await ws.send_json(data)
@@ -165,13 +164,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
             if data.get("action") == "vote":
                 voted = data.get("target")
                 voter = data.get("voter")
-                print("Voted:", voted)
                 if room_id not in votes:
-                    print("lol")
                     votes[room_id] = {}
                 votes[room_id][voter] = voted
-                print("votes: ", len(votes[room_id]), "\tplayers: ", len(rooms[room_id]))
-                print(votes)
 
                 # When all players have voted
                 if len(votes[room_id]) == len(rooms[room_id]):
