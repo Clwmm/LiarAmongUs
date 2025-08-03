@@ -3,94 +3,132 @@
 {% block title %}Room {{ room_id }}{% endblock %}
 
 {% block content %}
-    <h2>Room {{ room_id }}</h2>
-    <h3>Players:</h3>
-    <div id="player-buttons" style="display: flex; flex-wrap: wrap; gap: 10px;">
-        {% for player in players %}
-            <li>{{ player }}</li>
-        {% endfor %}
+<div class="fixed inset-0 bg-gray-900 text-white overflow-auto flex flex-col items-center py-10 px-4 space-y-5">
+    <div
+        class="w-full bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">
+        Room {{ room_id }}
     </div>
-    <button id="start-btn" style="margin-top: 1rem;">Start Game</button>
-    <p id="your-question" style="margin-top: 2rem; font-weight: bold;"></p>
+    <div class="flex gap-4 w-full mb-10">
+      <div class="w-1/2 bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">
+          NAME
+      </div>
+      <div id="second-column" class="w-1/2 bg-gray-600 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center">
+          POINTS
+      </div>
+    </div>
 
+    <div id="players-div" class="w-full space-y-5">
+    </div>
 
-    <script>
-        const roomId = "{{ room_id }}";
-        const name = "{{ name }}";
-        const playerButtons = document.getElementById("player-buttons");
-        let hasVoted = false;
-        const startBtn = document.getElementById("start-btn");
-        const questionText = document.getElementById("your-question");
+    <button id="start-btn"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200">
+        Start Game
+    </button>
 
-        const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
-        const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
+    <p id="your-question" class="mt-10 text-6xl font-bold text-center"></p>
+</div>
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+<script>
+    const roomId = "{{ room_id }}";
+    const name = "{{ name }}";
+    let hasVoted = false;
+    const startBtn = document.getElementById("start-btn");
+    const questionText = document.getElementById("your-question");
+    const playersDiv = document.getElementById("players-div");
+    const second_column = document.getElementById("second-column");
 
-            if (data.action === "redirect") {
-                window.location.href = data.target || "/";
-            }
+    const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
+    const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
 
-            if (data.action === "start_game") {
-                questionText.innerText = "Your question: " + data.question;
-                startBtn.style.display = "none";
-                hasVoted = false;
-            }
+    // ws.onopen = () => {
+    //     // Send the initial action once the WebSocket is ready
+    //     ws.send(JSON.stringify({
+    //         action: "get_players"
+    //     }));
+    // };
 
-            if (data.players) {
-                playerButtons.innerHTML = "";
-                data.players.forEach(player => {
-                    const btn = document.createElement("button");
-                    btn.textContent = player;
-                    btn.style.padding = "10px";
-                    btn.style.minWidth = "100px";
-                    btn.style.border = "2px solid gray";
-                    btn.style.borderRadius = "6px";
-                    btn.style.background = "#222";
-                    btn.style.color = "white";
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-                    btn.onclick = () => {
-                        if (hasVoted) return;
+        if (data.action === "redirect") {
+            window.location.href = data.target || "/";
+        }
 
-                        // Highlight selection
-                        document.querySelectorAll("#player-buttons button").forEach(b => {
-                            b.style.borderColor = "gray";
-                        });
-                        btn.style.borderColor = "limegreen";
+        if (data.action === "start_game") {
+            second_column.innerHTML = "ANSWER";
+            questionText.innerText = "Your question: " + data.question;
+            startBtn.classList.add("hidden");
+            hasVoted = false;
+        }
 
-                        // Send vote
-                        ws.send(JSON.stringify({
-                            action: "vote",
-                            voter: name,
-                            target: player
-                        }));
-                        hasVoted = true;
-                    };
+        if (data.players) {
+            playersDiv.innerHTML = "";
+            data.players.forEach(player => {
+                const rowDiv = document.createElement("div");
+                const nameDiv = document.createElement("div");
+                const pointsDiv = document.createElement("div");
 
-                    playerButtons.appendChild(btn);
-                });
-            }
+                rowDiv.className = "flex gap-4 w-full";
+                nameDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
+                nameDiv.textContent = player;
+                pointsDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
+                pointsDiv.textContent = 0;
 
-            if (data.action === "reveal_votes") {
-                const votes = data.votes;
-                let voteText = "🗳️ Voting results:\n\n";
-                for (const [voter, target] of Object.entries(votes)) {
-                    voteText += `${voter} ➡️ ${target}\n`;
-                }
-                alert(voteText);
-            }
-        };
-
-        startBtn.onclick = async () => {
-            const res = await fetch(`/start_game/${roomId}`, {
-                method: "POST"
+                rowDiv.appendChild(nameDiv);
+                rowDiv.appendChild(pointsDiv);
+                playersDiv.appendChild(rowDiv);
             });
-            const result = await res.json();
-            if (result.error) {
-                alert(result.error);
-            }
-        };
-    </script>
 
+            // playerButtons.innerHTML = "";
+            // data.players.forEach(player => {
+            //     const btn = document.createElement("button");
+            //     btn.textContent = player;
+            //     btn.className = "px-6 py-4 min-w-[12rem] border-4 border-gray-500 rounded-3xl bg-gray-800 text-white text-5xl font-medium hover:border-blue-400 transition duration-200";
+            //
+            //     btn.onclick = () => {
+            //         if (hasVoted) return;
+            //
+            //         // Reset all buttons
+            //         document.querySelectorAll("#player-buttons button").forEach(b => {
+            //             b.classList.remove("border-green-500");
+            //             b.classList.add("border-gray-500");
+            //         });
+            //
+            //         // Highlight selection
+            //         btn.classList.remove("border-gray-500");
+            //         btn.classList.add("border-green-500");
+            //
+            //         // Send vote
+            //         ws.send(JSON.stringify({
+            //             action: "vote",
+            //             voter: name,
+            //             target: player
+            //         }));
+            //         hasVoted = true;
+            //     };
+            //
+            //     playerButtons.appendChild(btn);
+            // });
+        }
+
+        if (data.action === "reveal_votes") {
+            const votes = data.votes;
+            let voteText = "🗳️ Voting results:\n\n";
+            for (const [voter, target] of Object.entries(votes)) {
+                voteText += `${voter} ➡️ ${target}\n`;
+            }
+            alert(voteText);
+        }
+    };
+
+    startBtn.onclick = async () => {
+        const res = await fetch(`/start_game/${roomId}`, {
+            method: "POST"
+        });
+        const result = await res.json();
+        if (result.error) {
+            alert(result.error);
+        }
+    };
+</script>
 {% endblock %}
