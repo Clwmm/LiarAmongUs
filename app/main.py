@@ -25,7 +25,7 @@ class State(Enum):
     VOTE_AGAIN = auto()
     POINTS = auto()
 
-rooms: Dict[int, List[str]] = {}  # room_id -> player names
+rooms: Dict[int, Dict[str, int]] = {}  # room_id -> player name -> points
 rooms_state: Dict[int, State] = {} # room_id -> room state
 connections: Dict[int, List[WebSocket]] = {}  # room_id -> websocket list
 used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
@@ -54,8 +54,8 @@ async def join_room(room_id: int = Form(...), name: str = Form(...)):
         return RedirectResponse(f"/?error=Name%20already%20taken%20in%20Room%20{room_id}", status_code=302)
 
     if room_id not in rooms:
-        rooms[room_id] = []
-    rooms[room_id].append(name)
+        rooms[room_id] = {}
+    rooms[room_id][name] = 0  # Initialize with 0 points
 
     # Broadcast new list of players
     asyncio.create_task(broadcast_player_list(room_id))
@@ -111,7 +111,7 @@ async def broadcast_votes_submited(room_id: int):
 
 @app.get("/room/{room_id}", response_class=HTMLResponse)
 async def room_page(request: Request, room_id: int, name: str):
-    players = rooms.get(room_id, [])
+    players = list(rooms.get(room_id, {}).keys())
     return templates.TemplateResponse("room.html", {
         "request": request,
         "room_id": room_id,
@@ -121,14 +121,14 @@ async def room_page(request: Request, room_id: int, name: str):
 
 # Helper function to broadcast updates
 async def broadcast_player_list(room_id: int):
-    players = rooms.get(room_id, [])
+    players = list(rooms.get(room_id, {}).keys())
     data = {"players": players}
     for ws in connections.get(room_id, []):
         await ws.send_json(data)
 
 @app.post("/start_game/{room_id}")
 async def start_game(room_id: int):
-    players = rooms.get(room_id, [])
+    players = list(rooms.get(room_id, {}).keys())
     if len(players) < 2:
         return JSONResponse({"error": "Not enough players"}, status_code=400)
 
@@ -203,9 +203,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
 
     # Track player
     # if room_id not in rooms:
-    #     rooms[room_id] = []
+    #     rooms[room_id] = {}
     # if player_name not in rooms[room_id]:
-    #     rooms[room_id].append(player_name)
+    #     rooms[room_id][player_name] = 0  # Initialize with 0 points
 
     if room_id not in connections:
         connections[room_id] = []
@@ -217,15 +217,6 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
         while True:
             data = await websocket.receive_json()
             if data.get("action") == "submit_answer":
-                # voted = data.get("target")
-                # voter = data.get("voter")
-                # if room_id not in votes:
-                #     votes[room_id] = {}
-                # votes[room_id][voter] = voted
-                #
-                # # When all players have voted
-                # if len(votes[room_id]) == len(rooms[room_id]):
-                #     await broadcast_votes(room_id)
                 current_answers[room_id] = current_answers.get(room_id, 0) + 1
                 if current_answers[room_id] == len(rooms[room_id]):
                     await broadcast_answers_submitted(room_id)
@@ -247,7 +238,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
         if room_id in connections and websocket in connections[room_id]:
             connections[room_id].remove(websocket)
         if room_id in rooms and player_name in rooms[room_id]:
-            rooms[room_id].remove(player_name)
+            del rooms[room_id][player_name]
         await broadcast_player_list(room_id)
 
 
