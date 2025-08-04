@@ -524,6 +524,13 @@
                     setAnswerState(data.your_question, data.already_answered, data.your_answer);
                     setDiscusionState(data.real_question);
                     break;
+                case "VOTING":
+                    setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    setDiscusionState(data.real_question);
+                    setVotingState();
+                    // TODO:
+                    // 1. add already_voted and your_vote
+                    break;
                 default:
                     const alert_m = "Not implemented: " + data.state;
                     alert(alert_m);

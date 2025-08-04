@@ -289,7 +289,16 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 }
                 await sendPackage(websocket, data)
             case State.VOTING:
-                await sendPackage(websocket, {"action": "state", "state": "VOTING"})
+                data = {
+                    "action": "state",
+                    "state": "VOTING",
+                    "players": players,
+                    "your_question": your_question,
+                    "already_answered": already_answered,
+                    "your_answer": answer,
+                    "real_question": real_question
+                }
+                await sendPackage(websocket, data)
             case State.VOTING_RESULTS:
                 await sendPackage(websocket, {"action": "state", "state": "VOTING_RESULTS"})
             case State.VOTE_AGAIN:
