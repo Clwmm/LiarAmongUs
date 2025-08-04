@@ -392,6 +392,52 @@
             });
     }
 
+    function setShowingPointsState(points, liar) {
+        showHeader();
+        hideRevealedAnswer();
+        showPlayersList();
+        showRealQuestion();
+        showYourAnswer();
+        showYourVote();
+        hideYourQuestion();
+        showYourQuestionToggleButton();
+        hideYourQuestionText();
+        hideStartGameButton();
+        hideSubmitAnswerButton();
+        hideStartVotingButton();
+        hideSubmitVoteButton();
+        hideShowPointsButton();
+        hideVoteAgainButton();
+        showNextRoundButton();
+
+        second_column.textContent = "POINTS";
+
+        const playerRows = playersDiv.querySelectorAll("div.flex");
+            playerRows.forEach(row => {
+                let nameDiv = row.children[0];
+                let secondDiv = row.children[1];
+                let name = nameDiv.textContent.trim();
+
+                const pointsDiv = document.createElement("div");
+                pointsDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
+
+                // Check if name exists in the points object
+                if (points.hasOwnProperty(name)) {
+                    pointsDiv.textContent = points[name];
+                } else {
+                    pointsDiv.textContent = 0;
+                }
+
+                if (name === liar) {
+                    nameDiv.classList.remove("text-white")
+                    nameDiv.classList.add("text-red-600")
+                }
+
+                // Replace secondDiv with chooseBtn
+                row.replaceChild(pointsDiv, secondDiv);
+            });
+    }
+
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
@@ -409,6 +455,10 @@
 
         if (data.action === "start_voting") {
             setVotingState();
+        }
+
+        if (data.action === "show_points") {
+            setShowingPointsState(data.points, data.liar);
         }
 
         if (data.action === "reveal_votes") {
@@ -493,6 +543,12 @@
     startVotingButton.onclick = () => {
         ws.send(JSON.stringify({
             action: "start_voting_request"
+        }));
+    };
+
+    showPointsButton.onclick = () => {
+        ws.send(JSON.stringify({
+            action: "show_points_request"
         }));
     };
 </script>

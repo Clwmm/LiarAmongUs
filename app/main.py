@@ -32,16 +32,11 @@ used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
 current_questions: Dict[int, Dict[str, str]] = {} # room_id -> {"real_question": {real_question}, "fake_question": {fake_question}}
 current_answers: Dict[int, int] = {} # room_id -> number of submitted answers
 current_votes: Dict[int, Dict[str, str]] = {}  # room_id -> {voter_name: voted_player_name}
+current_voted_player: Dict[int, str] = {} # room_is -> voted player
 current_liar: Dict[int, str] = {} # room_id -> actual liar
 
-questions_pool = [
-    "What's your favorite food?",
-    "Describe your dream vacation.",
-    "What's a skill you wish you had?",
-    "If you could switch lives with someone, who would it be?",
-    "What scares you the most?",
-    "What's your most embarrassing moment?",
-]
+with open('app/question_pool.txt', 'r', encoding='utf-8') as file:
+    questions_pool = [line.strip() for line in file if line.strip()]
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -85,6 +80,29 @@ async def broadcast_start_voting(room_id: int):
         except:
             pass
 
+async def broadcast_show_points(room_id: int):
+    liar = current_liar.get(room_id)
+    voted = current_voted_player.get(room_id)
+
+    if voted != liar:
+        rooms[room_id][liar] += 3
+    else:
+        for player in rooms[room_id]:
+            if player != liar:
+                rooms[room_id][player] += 1
+
+    points = rooms.get(room_id, {})
+    message = {
+        "action": "show_points",
+        "points": points,
+        "liar": liar
+    }
+    for ws in connections.get(room_id, []):
+        try:
+            await ws.send_json(message)
+        except:
+            pass
+
 async def broadcast_votes_submited(room_id: int):
     room_votes = current_votes.get(room_id, {})
     vote_counts: Dict[str, int] = defaultdict(int)
@@ -94,7 +112,8 @@ async def broadcast_votes_submited(room_id: int):
     max_votes = max(vote_counts.values())
     top_voted_players = [player for player, votes in vote_counts.items() if votes == max_votes]
     validVoting = len(top_voted_players) == 1
-
+    if validVoting:
+        current_voted_player[room_id] = top_voted_players[0]
     message = {
         "action": "votes_submitted",
         "votes": dict(vote_counts),
@@ -233,6 +252,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 current_votes[room_id][voter] = voted
                 if len(current_votes[room_id]) == len(rooms[room_id]):
                     await broadcast_votes_submited(room_id)
+
+            if data.get("action") == "show_points_request":
+                await broadcast_show_points(room_id)
 
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:
