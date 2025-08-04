@@ -218,7 +218,7 @@
     //     }));
     // };
 
-    function setAnswerState(question, already_answered, answer) {
+    function setAnswerState(question, already_answered, answered_m) {
         showHeader();
         hideRevealedAnswer();
         showPlayersList();
@@ -240,11 +240,14 @@
         hideNextRoundButton();
 
         yourQuestionText.textContent = question;
-        if (already_answered)
-            selectedAnswer = answer
+        if (already_answered) {
+            answered = true
+            selectedAnswer = answered_m;
+        }
         else
             selectedAnswer = null;
         second_column.textContent = "ANSWER";
+        console.log(selectedAnswer);
 
         const playerRows = playersDiv.querySelectorAll("div.flex");
             playerRows.forEach(row => {
@@ -262,7 +265,7 @@
 
                 chooseBtn.className = "w-1/2 bg-green-800 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200";
 
-                if (already_answered && answer === name) {
+                if (already_answered && answered_m === name) {
                     chooseBtn.classList.remove("bg-green-800");
                     chooseBtn.classList.add("bg-red-600");
                 }
@@ -516,6 +519,10 @@
             switch (data.state) {
                 case "ANSWER":
                     setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    break;
+                case "DISCUSSION":
+                    setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    setDiscusionState(data.real_question);
                     break;
                 default:
                     const alert_m = "Not implemented: " + data.state;

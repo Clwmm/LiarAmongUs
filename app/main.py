@@ -70,8 +70,6 @@ async def broadcast_answers_submitted(room_id: int):
         except:
             pass
 
-    current_answers.pop(room_id, None)
-
 async def broadcast_start_voting(room_id: int):
     rooms_state[room_id] = State.VOTING
     current_votes.pop(room_id, None)
@@ -154,6 +152,7 @@ async def broadcast_player_list(room_id: int):
         await ws.send_json(data)
 
 async def broadcast_next_round(room_id: int):
+    current_answers.pop(room_id, None)
     players = list(rooms.get(room_id, {}).keys())
     if len(players) < 2:
         return JSONResponse({"error": "Not enough players"}, status_code=400)
@@ -248,22 +247,27 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
     connections[room_id].append(websocket)
 
     if rooms_state[room_id] == State.ROOM:
+        rooms[room_id][player_name] = 0
         await broadcast_player_list(room_id)
     else:
+        # players
         players = list(rooms.get(room_id, {}).keys())
+        # your question
+        if player_name == current_liar[room_id]:
+            your_question = current_questions[room_id]["fake_question"]
+        else:
+            your_question = current_questions[room_id]["real_question"]
+        # already_answered && your_answer
+        already_answered = False
+        answer = ""
+        if player_name in current_answers.get(room_id, {}):
+            already_answered = True
+            answer = current_answers[room_id][player_name]
+        # real question
+        real_question = current_questions[room_id]["real_question"]
+
         match rooms_state[room_id]:
             case State.ANSWER:
-                if player_name == current_liar[room_id]:
-                    your_question = current_questions[room_id]["fake_question"]
-                else:
-                    your_question = current_questions[room_id]["real_question"]
-
-                already_answered = False
-                answer = ""
-                if player_name in current_answers.get(room_id, {}):
-                    already_answered = True
-                    answer = current_answers[room_id][player_name]
-
                 data = {
                     "action": "state",
                     "state": "ANSWER",
@@ -274,7 +278,16 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 }
                 await sendPackage(websocket, data)
             case State.DISCUSSION:
-                await sendPackage(websocket, {"action": "state", "state": "DISCUSSION"})
+                data = {
+                    "action": "state",
+                    "state": "DISCUSSION",
+                    "players": players,
+                    "your_question": your_question,
+                    "already_answered": already_answered,
+                    "your_answer": answer,
+                    "real_question": real_question
+                }
+                await sendPackage(websocket, data)
             case State.VOTING:
                 await sendPackage(websocket, {"action": "state", "state": "VOTING"})
             case State.VOTING_RESULTS:
