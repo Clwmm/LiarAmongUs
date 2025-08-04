@@ -71,6 +71,7 @@ async def broadcast_answers_submitted(room_id: int):
     current_answers[room_id] = 0
 
 async def broadcast_start_voting(room_id: int):
+    current_votes.pop(room_id, None)
     message = {
         "action": "start_voting"
     }
@@ -260,6 +261,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
 
             if data.get("action") == "next_round_request":
                 _ = await broadcast_next_round(room_id)
+
+            if data.get("action") == "vote_again_request":
+                await broadcast_start_voting(room_id)
 
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:

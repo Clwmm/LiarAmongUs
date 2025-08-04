@@ -562,5 +562,11 @@
             action: "next_round_request"
         }));
     };
+
+    voteAgainButton.onclick = () => {
+        ws.send(JSON.stringify({
+            action: "vote_again_request"
+        }));
+    };
 </script>
 {% endblock %}
