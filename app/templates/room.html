@@ -245,6 +245,11 @@
                 let nameDiv = row.children[0];
                 let secondDiv = row.children[1];
 
+                if (nameDiv.classList.contains('text-red-600')) {
+                  nameDiv.classList.remove('text-red-600');
+                  nameDiv.classList.add('text-white');
+                }
+
                 const chooseBtn = document.createElement("button");
                 chooseBtn.textContent = "CHOOSE";
                 chooseBtn.className = "w-1/2 bg-green-800 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200";
@@ -549,6 +554,12 @@
     showPointsButton.onclick = () => {
         ws.send(JSON.stringify({
             action: "show_points_request"
+        }));
+    };
+
+    nextRoundButton.onclick = () => {
+        ws.send(JSON.stringify({
+            action: "next_round_request"
         }));
     };
 </script>

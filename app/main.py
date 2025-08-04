@@ -125,7 +125,7 @@ async def broadcast_votes_submited(room_id: int):
         except:
             pass
 
-    current_answers.pop(room_id, None)
+    current_votes.pop(room_id, None)
 
 
 @app.get("/room/{room_id}", response_class=HTMLResponse)
@@ -145,8 +145,7 @@ async def broadcast_player_list(room_id: int):
     for ws in connections.get(room_id, []):
         await ws.send_json(data)
 
-@app.post("/start_game/{room_id}")
-async def start_game(room_id: int):
+async def broadcast_next_round(room_id: int):
     players = list(rooms.get(room_id, {}).keys())
     if len(players) < 2:
         return JSONResponse({"error": "Not enough players"}, status_code=400)
@@ -189,8 +188,11 @@ async def start_game(room_id: int):
     # ✅ FIX: Broadcast player list after sending questions to trigger vote buttons on frontend
     # await broadcast_player_list(room_id)
 
-    return JSONResponse({"message": f"Game started. Odd player: {odd_player}"})
+    return JSONResponse({"message": f"Game started."})
 
+@app.post("/start_game/{room_id}")
+async def start_game(room_id: int):
+    return await broadcast_next_round(room_id)
 
 @app.get("/reset")
 async def reset_app():
@@ -255,6 +257,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
 
             if data.get("action") == "show_points_request":
                 await broadcast_show_points(room_id)
+
+            if data.get("action") == "next_round_request":
+                _ = await broadcast_next_round(room_id)
 
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:
