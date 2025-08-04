@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
+from enum import Enum, auto
 import random
 
 import asyncio
@@ -15,7 +16,17 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
+class State(Enum):
+    ROOM = auto()
+    ANSWER = auto()
+    DISCUSSION = auto()
+    VOTING = auto()
+    VOTING_RESULTS = auto()
+    VOTE_AGAIN = auto()
+    POINTS = auto()
+
 rooms: Dict[int, List[str]] = {}  # room_id -> player names
+rooms_state: Dict[int, State] = {} # room_id -> room state
 connections: Dict[int, List[WebSocket]] = {}  # room_id -> websocket list
 used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
 current_questions: Dict[int, Dict[str, str]] = {} # room_id -> {"real_question": {real_question}, "fake_question": {fake_question}}
@@ -260,4 +271,4 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
 #   2. Dodanie zatwierdzenia głosowania, aby ktoś mógł naprawić błąd
 #   3. Dodanie ukrywania oryginalnego pytania po głosowaniu i pokazywaniu odpowiedzi
 #       3a. Dodanie przycisku "show" do oryginalnego pytania po grze
-#
+#   4. Check in answer state and voting state if user answered and voted to not show the submit answer

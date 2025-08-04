@@ -107,6 +107,107 @@
     let selectedVote = null;
     let voted = false;
 
+    function showHeader() {
+        header.hidden = false;
+    }
+    function hideHeader() {
+        header.hidden = true;
+    }
+    function showRevealedAnswer() {
+        revealedAnswer.hidden = false;
+    }
+    function hideRevealedAnswer() {
+        revealedAnswer.hidden = true;
+    }
+    function showPlayersList() {
+        playersDiv.hidden = false;
+    }
+    function hidePlayersList() {
+        playersDiv.hidden = true;
+    }
+    function showRealQuestion() {
+        realQuestionDiv.hidden = false;
+        realQuestionText.hidden = false;
+    }
+    function hideRealQuestion() {
+        realQuestionDiv.hidden = true;
+        realQuestionText.hidden = true;
+    }
+    function showYourAnswer() {
+        yourAnswer.hidden = false;
+    }
+    function hideYourAnswer() {
+        yourAnswer.hidden = true;
+    }
+    function showYourVote() {
+        yourVote.hidden = false;
+    }
+    function hideYourVote() {
+        yourVote.hidden = true;
+    }
+    function showYourQuestion() {
+        yourQuestionDiv.hidden = false;
+    }
+    function hideYourQuestion() {
+        yourQuestionDiv.hidden = true;
+    }
+    function showYourQuestionToggleButton() {
+        yourQuestionToggleButton.hidden = false;
+    }
+    function hideYourQuestionToggleButton() {
+        yourQuestionToggleButton.hidden = true;
+    }
+    function showYourQuestionText() {
+        yourQuestionText.hidden = false;
+    }
+    function hideYourQuestionText() {
+        yourQuestionText.hidden = true;
+    }
+    function showStartGameButton() {
+        startBtn.hidden = false;
+    }
+    function hideStartGameButton() {
+        startBtn.hidden = true;
+    }
+    function showSubmitAnswerButton() {
+        submitAnswer.hidden = false;
+    }
+    function hideSubmitAnswerButton() {
+        submitAnswer.hidden = true;
+    }
+    function showStartVotingButton() {
+        startVotingButton.hidden = false;
+    }
+    function hideStartVotingButton() {
+        startVotingButton.hidden = true;
+    }
+    function showSubmitVoteButton() {
+        submitVote.hidden = false;
+    }
+    function hideSubmitVoteButton() {
+        submitVote.hidden = true;
+    }
+    function showShowPointsButton() {
+        showPointsButton.hidden = false;
+    }
+    function hideShowPointsButton() {
+        showPointsButton.hidden = true;
+    }
+    function showVoteAgainButton() {
+        voteAgainButton.hidden = false;
+    }
+    function hideVoteAgainButton() {
+        voteAgainButton.hidden = true;
+    }
+    function showNextRoundButton() {
+        nextRoundButton.hidden = false;
+    }
+    function hideNextRoundButton() {
+        nextRoundButton.hidden = true;
+    }
+
+
+
     const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
 
@@ -118,10 +219,23 @@
     // };
 
     function setAnswerState(question) {
-        startBtn.hidden = true;
-        submitAnswer.hidden = false;
-        yourQuestionDiv.hidden = false;
-        yourQuestionText.hidden = false;
+        showHeader();
+        hideRevealedAnswer();
+        showPlayersList();
+        hideRealQuestion();
+        hideYourAnswer();
+        hideYourVote();
+        showYourQuestion();
+        hideYourQuestionToggleButton();
+        showYourQuestionText();
+        hideStartGameButton();
+        showSubmitAnswerButton();
+        hideStartVotingButton();
+        hideSubmitVoteButton();
+        hideShowPointsButton();
+        hideVoteAgainButton();
+        hideNextRoundButton();
+
         yourQuestionText.textContent = question;
         selectedAnswer = null;
         second_column.textContent = "ANSWER";
@@ -157,32 +271,47 @@
     }
 
     function setDiscusionState(real_question) {
+        hideHeader();
+        showRevealedAnswer();
+        hidePlayersList();
+        showRealQuestion();
+        hideYourAnswer();
+        hideYourVote();
+        hideYourQuestion();
+        showYourQuestionToggleButton();
+        hideYourQuestionText();
+        hideStartGameButton();
+        hideSubmitAnswerButton();
+        showStartVotingButton();
+        hideSubmitVoteButton();
+        hideShowPointsButton();
+        hideVoteAgainButton();
+        hideNextRoundButton();
+
         answered = false;
-        header.hidden = true;
-        playersDiv.hidden = true;
-        revealedAnswer.hidden = false;
-
         revealedAnswer.textContent = selectedAnswer;
-
-        realQuestionDiv.hidden = false;
-        realQuestionText.hidden = false;
         realQuestionText.textContent = real_question;
-
-        yourQuestionDiv.hidden = true;
-        yourQuestionText.hidden = true;
-        yourQuestionToggleButton.hidden = false;
-        startVotingButton.hidden = false;
     }
 
     function setVotingState() {
-        header.hidden = false;
-        revealedAnswer.hidden = true;
-        playersDiv.hidden = false;
-        yourAnswer.hidden = false;
+        showHeader();
+        hideRevealedAnswer();
+        showPlayersList();
+        showRealQuestion();
+        showYourAnswer();
+        hideYourVote();
+        hideYourQuestion();
+        showYourQuestionToggleButton();
+        hideYourQuestionText();
+        hideStartGameButton();
+        hideSubmitAnswerButton();
+        hideStartVotingButton();
+        showSubmitVoteButton();
+        hideShowPointsButton();
+        hideVoteAgainButton();
+        hideNextRoundButton();
+
         yourAnswer.textContent = "Your answer: " + selectedAnswer;
-        yourQuestionText.hidden = true;
-        startVotingButton.hidden = true;
-        submitVote.hidden = false;
         second_column.textContent = "VOTE";
 
         const playerRows = playersDiv.querySelectorAll("div.flex");
@@ -216,13 +345,31 @@
     }
 
     function setVotingResultState(votes, validVoting) {
+        showHeader();
+        hideRevealedAnswer();
+        showPlayersList();
+        showRealQuestion();
+        showYourAnswer();
+        showYourVote();
+        hideYourQuestion();
+        showYourQuestionToggleButton();
+        hideYourQuestionText();
+        hideStartGameButton();
+        hideSubmitAnswerButton();
+        hideStartVotingButton();
+        hideSubmitVoteButton();
+        hideShowPointsButton();
+        hideVoteAgainButton();
+        hideNextRoundButton();
+
+        if (validVoting)
+            showShowPointsButton();
+        else
+            showVoteAgainButton();
+
         voted = false;
-        yourVote.hidden = false;
         yourVote.textContent = "Your vote: " + selectedVote;
         second_column.textContent = "VOTES";
-        yourQuestionText.hidden = true;
-
-        playersDiv.hidden = false;
 
         const playerRows = playersDiv.querySelectorAll("div.flex");
             playerRows.forEach(row => {
@@ -243,12 +390,6 @@
                 // Replace secondDiv with chooseBtn
                 row.replaceChild(pointsDiv, secondDiv);
             });
-
-        if (validVoting)
-            showPointsButton.hidden = false;
-        else
-            voteAgainButton.hidden = false;
-
     }
 
     ws.onmessage = (event) => {
