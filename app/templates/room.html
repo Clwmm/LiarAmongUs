@@ -209,7 +209,7 @@
 
 
     const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}`);
+    const ws = new WebSocket(`${wsProtocol}://${location.host}/ws/${roomId}?name=${encodeURIComponent(name)}`);
 
     // ws.onopen = () => {
     //     // Send the initial action once the WebSocket is ready
