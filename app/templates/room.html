@@ -218,7 +218,7 @@
     //     }));
     // };
 
-    function setAnswerState(question) {
+    function setAnswerState(question, already_answered, answer) {
         showHeader();
         hideRevealedAnswer();
         showPlayersList();
@@ -229,7 +229,10 @@
         hideYourQuestionToggleButton();
         showYourQuestionText();
         hideStartGameButton();
-        showSubmitAnswerButton();
+        if (already_answered)
+            hideSubmitAnswerButton();
+        else
+            showSubmitAnswerButton();
         hideStartVotingButton();
         hideSubmitVoteButton();
         hideShowPointsButton();
@@ -237,13 +240,17 @@
         hideNextRoundButton();
 
         yourQuestionText.textContent = question;
-        selectedAnswer = null;
+        if (already_answered)
+            selectedAnswer = answer
+        else
+            selectedAnswer = null;
         second_column.textContent = "ANSWER";
 
         const playerRows = playersDiv.querySelectorAll("div.flex");
             playerRows.forEach(row => {
                 let nameDiv = row.children[0];
                 let secondDiv = row.children[1];
+                let name = nameDiv.textContent.trim();
 
                 if (nameDiv.classList.contains('text-red-600')) {
                   nameDiv.classList.remove('text-red-600');
@@ -252,7 +259,13 @@
 
                 const chooseBtn = document.createElement("button");
                 chooseBtn.textContent = "CHOOSE";
+
                 chooseBtn.className = "w-1/2 bg-green-800 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200";
+
+                if (already_answered && answer === name) {
+                    chooseBtn.classList.remove("bg-green-800");
+                    chooseBtn.classList.add("bg-red-600");
+                }
 
                 chooseBtn.onclick = () => {
                     if (answered)
@@ -446,12 +459,32 @@
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
+        if (data.players) {
+            playersDiv.innerHTML = "";
+            data.players.forEach(player => {
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "flex gap-4 w-full";
+
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
+                nameDiv.textContent = player;
+
+                const pointsDiv = document.createElement("div");
+                pointsDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
+                pointsDiv.textContent = 0;
+
+                rowDiv.appendChild(nameDiv);
+                rowDiv.appendChild(pointsDiv);
+                playersDiv.appendChild(rowDiv);
+            });
+        }
+
         if (data.action === "redirect") {
             window.location.href = data.target || "/";
         }
 
         if (data.action === "start_game") {
-            setAnswerState(data.question);
+            setAnswerState(data.question, false);
         }
 
         if (data.action === "answers_submitted") {
@@ -479,25 +512,15 @@
             setVotingResultState(data.votes, data.validVoting);
         }
 
-        if (data.players) {
-            playersDiv.innerHTML = "";
-            data.players.forEach(player => {
-                const rowDiv = document.createElement("div");
-                rowDiv.className = "flex gap-4 w-full";
-
-                const nameDiv = document.createElement("div");
-                nameDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
-                nameDiv.textContent = player;
-
-                const pointsDiv = document.createElement("div");
-                pointsDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
-                pointsDiv.textContent = 0;
-
-                rowDiv.appendChild(nameDiv);
-                rowDiv.appendChild(pointsDiv);
-                playersDiv.appendChild(rowDiv);
-            });
-
+        if (data.action === "state") {
+            switch (data.state) {
+                case "ANSWER":
+                    setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    break;
+                default:
+                    const alert_m = "Not implemented: " + data.state;
+                    alert(alert_m);
+            }
         }
     };
 
@@ -518,7 +541,9 @@
         }
 
         ws.send(JSON.stringify({
-            action: "submit_answer"
+            action: "submit_answer",
+            name: name,
+            answer: selectedAnswer
         }));
 
         answered = true;

@@ -30,7 +30,7 @@ rooms_state: Dict[int, State] = {} # room_id -> room state
 connections: Dict[int, List[WebSocket]] = {}  # room_id -> websocket list
 used_questions: Dict[int, List[int]] = {}  # room_id -> list of used indexes
 current_questions: Dict[int, Dict[str, str]] = {} # room_id -> {"real_question": {real_question}, "fake_question": {fake_question}}
-current_answers: Dict[int, int] = {} # room_id -> number of submitted answers
+current_answers: Dict[int, Dict[str, str]] = {} # room_id -> {player name -> answer}
 current_votes: Dict[int, Dict[str, str]] = {}  # room_id -> {voter_name: voted_player_name}
 current_voted_player: Dict[int, str] = {} # room_is -> voted player
 current_liar: Dict[int, str] = {} # room_id -> actual liar
@@ -51,6 +51,7 @@ async def join_room(room_id: int = Form(...), name: str = Form(...)):
     if room_id not in rooms:
         rooms[room_id] = {}
     rooms[room_id][name] = 0  # Initialize with 0 points
+    rooms_state[room_id] = State.ROOM
 
     # Broadcast new list of players
     asyncio.create_task(broadcast_player_list(room_id))
@@ -58,6 +59,7 @@ async def join_room(room_id: int = Form(...), name: str = Form(...)):
     return RedirectResponse(f"/room/{room_id}?name={name}", status_code=302)
 
 async def broadcast_answers_submitted(room_id: int):
+    rooms_state[room_id] = State.DISCUSSION
     message = {
         "action": "answers_submitted",
         "real_question": current_questions[room_id]["real_question"]
@@ -68,9 +70,10 @@ async def broadcast_answers_submitted(room_id: int):
         except:
             pass
 
-    current_answers[room_id] = 0
+    current_answers.pop(room_id, None)
 
 async def broadcast_start_voting(room_id: int):
+    rooms_state[room_id] = State.VOTING
     current_votes.pop(room_id, None)
     message = {
         "action": "start_voting"
@@ -82,6 +85,7 @@ async def broadcast_start_voting(room_id: int):
             pass
 
 async def broadcast_show_points(room_id: int):
+    rooms_state[room_id] = State.POINTS
     liar = current_liar.get(room_id)
     voted = current_voted_player.get(room_id)
 
@@ -114,7 +118,10 @@ async def broadcast_votes_submited(room_id: int):
     top_voted_players = [player for player, votes in vote_counts.items() if votes == max_votes]
     validVoting = len(top_voted_players) == 1
     if validVoting:
+        rooms_state[room_id] = State.VOTING_RESULTS
         current_voted_player[room_id] = top_voted_players[0]
+    else:
+        rooms_state[room_id] = State.VOTE_AGAIN
     message = {
         "action": "votes_submitted",
         "votes": dict(vote_counts),
@@ -157,6 +164,8 @@ async def broadcast_next_round(room_id: int):
 
     if len(available_indexes) < 2:
         return JSONResponse({"error": "Not enough unused questions"}, status_code=400)
+
+    rooms_state[room_id] = State.ANSWER
 
     # Pick two indexes
     same_idx, odd_idx = random.sample(available_indexes, 2)
@@ -216,6 +225,11 @@ async def reset_app():
 
     return RedirectResponse(f"/?error=Reset%20Success", status_code=302)
 
+async def sendPackage(ws, data):
+    try:
+        await ws.send_json(data)
+    except:
+        pass
 
 @app.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: int):
@@ -233,14 +247,54 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
         connections[room_id] = []
     connections[room_id].append(websocket)
 
-    await broadcast_player_list(room_id)
+    if rooms_state[room_id] == State.ROOM:
+        await broadcast_player_list(room_id)
+    else:
+        players = list(rooms.get(room_id, {}).keys())
+        match rooms_state[room_id]:
+            case State.ANSWER:
+                if player_name == current_liar[room_id]:
+                    your_question = current_questions[room_id]["fake_question"]
+                else:
+                    your_question = current_questions[room_id]["real_question"]
+
+                already_answered = False
+                answer = ""
+                if player_name in current_answers.get(room_id, {}):
+                    already_answered = True
+                    answer = current_answers[room_id][player_name]
+
+                data = {
+                    "action": "state",
+                    "state": "ANSWER",
+                    "players": players,
+                    "your_question": your_question,
+                    "already_answered": already_answered,
+                    "your_answer": answer
+                }
+                await sendPackage(websocket, data)
+            case State.DISCUSSION:
+                await sendPackage(websocket, {"action": "state", "state": "DISCUSSION"})
+            case State.VOTING:
+                await sendPackage(websocket, {"action": "state", "state": "VOTING"})
+            case State.VOTING_RESULTS:
+                await sendPackage(websocket, {"action": "state", "state": "VOTING_RESULTS"})
+            case State.VOTE_AGAIN:
+                await sendPackage(websocket, {"action": "state", "state": "VOTE_AGAIN"})
+            case State.POINTS:
+                await sendPackage(websocket, {"action": "state", "state": "POINTS"})
 
     try:
         while True:
             data = await websocket.receive_json()
             if data.get("action") == "submit_answer":
-                current_answers[room_id] = current_answers.get(room_id, 0) + 1
-                if current_answers[room_id] == len(rooms[room_id]):
+                name = data.get("name")
+                answer = data.get("answer")
+                if room_id not in current_answers:
+                    current_answers[room_id] = {}
+
+                current_answers[room_id][name] = answer
+                if len(current_answers[room_id]) == len(rooms[room_id]):
                     await broadcast_answers_submitted(room_id)
 
             if data.get("action") == "start_voting_request":
@@ -268,29 +322,12 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:
             connections[room_id].remove(websocket)
-        if room_id in rooms and player_name in rooms[room_id]:
-            del rooms[room_id][player_name]
-        await broadcast_player_list(room_id)
-
-
-# @app.websocket("/ws/{room_id}")
-# async def websocket_endpoint(websocket: WebSocket, room_id: int):
-#     await websocket.accept()
-#
-#     if room_id not in connections:
-#         connections[room_id] = []
-#     connections[room_id].append(websocket)
-#
-#     try:
-#         while True:
-#             await websocket.receive_text()  # keep connection alive
-#     except WebSocketDisconnect:
-#         connections[room_id].remove(websocket)
-
+        if rooms_state[room_id] == State.ROOM:
+            if room_id in rooms and player_name in rooms[room_id]:
+                del rooms[room_id][player_name]
+            await broadcast_player_list(room_id)
 
 # TODO:
-#   1. Wyświetlanie odpowiedzi na całym ekranie aby pokazywać innym
-#   2. Dodanie zatwierdzenia głosowania, aby ktoś mógł naprawić błąd
-#   3. Dodanie ukrywania oryginalnego pytania po głosowaniu i pokazywaniu odpowiedzi
-#       3a. Dodanie przycisku "show" do oryginalnego pytania po grze
-#   4. Check in answer state and voting state if user answered and voted to not show the submit answer
+#   1. Create States and when user is reconnecting send actual state with needed data
+#   2. Check in answer state and voting state if user answered or voted to not show the submit button
+#   3. Store your answer and your vote in server and send it while reconnecting
