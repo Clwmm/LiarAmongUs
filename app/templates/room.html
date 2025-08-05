@@ -247,7 +247,6 @@
         else
             selectedAnswer = null;
         second_column.textContent = "ANSWER";
-        console.log(selectedAnswer);
 
         const playerRows = playersDiv.querySelectorAll("div.flex");
             playerRows.forEach(row => {
@@ -518,15 +517,6 @@
             setShowingPointsState(data.points, data.liar);
         }
 
-        if (data.action === "reveal_votes") {
-            const votes = data.votes;
-            let voteText = "🗳️ Voting results:\n\n";
-            for (const [voter, target] of Object.entries(votes)) {
-                voteText += `${voter} ➡️ ${target}\n`;
-            }
-            alert(voteText);
-        }
-
         if (data.action === "votes_submitted") {
             setVotingResultState(data.votes, data.validVoting);
         }
@@ -543,7 +533,26 @@
                 case "VOTING":
                     setAnswerState(data.your_question, data.already_answered, data.your_answer);
                     setDiscusionState(data.real_question);
-                    setVotingState(data.already_voted, data.vote);
+                    setVotingState(data.already_voted, data.your_vote);
+                    break;
+                case "VOTING_RESULTS":
+                    setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    setDiscusionState(data.real_question);
+                    setVotingState(data.already_voted, data.your_vote);
+                    setVotingResultState(data.votes_count, data.valid_voting);
+                    break;
+                case "VOTE_AGAIN":
+                    setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    setDiscusionState(data.real_question);
+                    setVotingState(data.already_voted, data.your_vote);
+                    setVotingResultState(data.votes_count, data.valid_voting);
+                    break;
+                case "POINTS":
+                    setAnswerState(data.your_question, data.already_answered, data.your_answer);
+                    setDiscusionState(data.real_question);
+                    setVotingState(data.already_voted, data.your_vote);
+                    setVotingResultState(data.votes_count, data.valid_voting);
+                    setShowingPointsState(data.points, data.liar);
                     break;
                 default:
                     const alert_m = "Not implemented: " + data.state;
