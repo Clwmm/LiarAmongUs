@@ -198,9 +198,6 @@ async def broadcast_next_round(room_id: int):
         except:
             pass
 
-    # ✅ FIX: Broadcast player list after sending questions to trigger vote buttons on frontend
-    # await broadcast_player_list(room_id)
-
     return JSONResponse({"message": f"Game started."})
 
 @app.post("/start_game/{room_id}")
@@ -249,7 +246,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
         connections[room_id] = []
     connections[room_id].append(websocket)
 
-    if rooms_state[room_id] == State.ROOM:
+    if rooms_state.get(room_id) == State.ROOM:
         rooms[room_id][player_name] = 0
         await broadcast_player_list(room_id)
     else:
@@ -278,7 +275,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
             already_voted = True
             vote = current_votes[room_id][player_name]
 
-        match rooms_state[room_id]:
+        match rooms_state.get(room_id):
             case State.ANSWER:
                 data = {
                     "action": "state",
@@ -407,7 +404,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
     except WebSocketDisconnect:
         if room_id in connections and websocket in connections[room_id]:
             connections[room_id].remove(websocket)
-        if rooms_state[room_id] == State.ROOM:
+        if rooms_state.get(room_id) == State.ROOM:
             if room_id in rooms and player_name in rooms[room_id]:
                 del rooms[room_id][player_name]
             await broadcast_player_list(room_id)
