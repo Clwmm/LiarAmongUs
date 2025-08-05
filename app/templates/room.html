@@ -501,6 +501,13 @@
             window.location.href = data.target || "/";
         }
 
+        if (data.action === "ping_start_game") {
+            ws.send(JSON.stringify({
+                action: "pong_start_game",
+                name: name
+            }));
+        }
+
         if (data.action === "start_game") {
             setAnswerState(data.question, false);
         }

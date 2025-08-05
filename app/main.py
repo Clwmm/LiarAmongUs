@@ -187,16 +187,9 @@ async def broadcast_next_round(room_id: int):
     used.extend([same_idx, odd_idx])
     used_questions[room_id] = used
 
-    # Send question to each player
-    name_to_ws = dict(zip(players, connections.get(room_id, [])))
-    for name, ws in name_to_ws.items():
-        try:
-            await ws.send_json({
-                "action": "start_game",
-                "question": odd_q if name == odd_player else same_q
-            })
-        except:
-            pass
+    data = {"action": "ping_start_game"}
+    for ws in connections.get(room_id, []):
+        await ws.send_json(data)
 
     return JSONResponse({"message": f"Game started."})
 
@@ -379,6 +372,18 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 if len(current_answers[room_id]) == len(rooms[room_id]):
                     await broadcast_answers_submitted(room_id)
 
+            if data.get("action") == "pong_start_game":
+                name = data.get("name")
+                if name == current_liar[room_id]:
+                    your_question = current_questions[room_id]["fake_question"]
+                else:
+                    your_question = current_questions[room_id]["real_question"]
+                data = {
+                    "action": "start_game",
+                    "question": your_question
+                }
+                await sendPackage(websocket, data)
+
             if data.get("action") == "start_voting_request":
                 await broadcast_start_voting(room_id)
 
@@ -408,6 +413,3 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
             if room_id in rooms and player_name in rooms[room_id]:
                 del rooms[room_id][player_name]
             await broadcast_player_list(room_id)
-
-# TODO:
-#   1. Change way of broadcasting the next round without needing to zip the player names and connections
