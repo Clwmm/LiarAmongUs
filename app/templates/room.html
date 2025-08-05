@@ -241,7 +241,7 @@
 
         yourQuestionText.textContent = question;
         if (already_answered) {
-            answered = true
+            answered = true;
             selectedAnswer = answered_m;
         }
         else
@@ -314,7 +314,7 @@
         realQuestionText.textContent = real_question;
     }
 
-    function setVotingState() {
+    function setVotingState(already_voted, vote_m) {
         showHeader();
         hideRevealedAnswer();
         showPlayersList();
@@ -327,10 +327,20 @@
         hideStartGameButton();
         hideSubmitAnswerButton();
         hideStartVotingButton();
-        showSubmitVoteButton();
+        if (already_voted)
+            hideSubmitVoteButton();
+        else
+            showSubmitVoteButton();
         hideShowPointsButton();
         hideVoteAgainButton();
         hideNextRoundButton();
+
+        if (already_voted) {
+            voted = true;
+            selectedVote = vote_m;
+        }
+        else
+            selectedVote = null;
 
         yourAnswer.textContent = "Your answer: " + selectedAnswer;
         second_column.textContent = "VOTE";
@@ -339,10 +349,16 @@
             playerRows.forEach(row => {
                 let nameDiv = row.children[0];
                 let secondDiv = row.children[1];
+                let name = nameDiv.textContent.trim();
 
                 const chooseBtn = document.createElement("button");
                 chooseBtn.textContent = "VOTE";
                 chooseBtn.className = "w-1/2 bg-green-800 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-4xl text-6xl transition duration-200";
+
+                if (already_voted && vote_m === name) {
+                    chooseBtn.classList.remove("bg-green-800");
+                    chooseBtn.classList.add("bg-red-600");
+                }
 
                 chooseBtn.onclick = () => {
                     if (voted)
@@ -527,9 +543,7 @@
                 case "VOTING":
                     setAnswerState(data.your_question, data.already_answered, data.your_answer);
                     setDiscusionState(data.real_question);
-                    setVotingState();
-                    // TODO:
-                    // 1. add already_voted and your_vote
+                    setVotingState(data.already_voted, data.vote);
                     break;
                 default:
                     const alert_m = "Not implemented: " + data.state;

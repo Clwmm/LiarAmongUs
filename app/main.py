@@ -252,6 +252,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
     else:
         # players
         players = list(rooms.get(room_id, {}).keys())
+
+        if player_name not in players:
+            await sendPackage(websocket, {"action": "redirect"})
         # your question
         if player_name == current_liar[room_id]:
             your_question = current_questions[room_id]["fake_question"]
@@ -265,6 +268,12 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
             answer = current_answers[room_id][player_name]
         # real question
         real_question = current_questions[room_id]["real_question"]
+        # already_voted && your_vote
+        already_voted = False
+        vote = ""
+        if player_name in current_votes.get(room_id, {}):
+            already_voted = True
+            vote = current_votes[room_id][player_name]
 
         match rooms_state[room_id]:
             case State.ANSWER:
@@ -296,7 +305,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                     "your_question": your_question,
                     "already_answered": already_answered,
                     "your_answer": answer,
-                    "real_question": real_question
+                    "real_question": real_question,
+                    "already_voted": already_voted,
+                    "vote": vote
                 }
                 await sendPackage(websocket, data)
             case State.VOTING_RESULTS:

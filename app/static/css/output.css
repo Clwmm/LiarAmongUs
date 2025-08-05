@@ -351,9 +351,6 @@
   .text-red-600 {
     color: var(--color-red-600);
   }
-  .text-red-950 {
-    color: var(--color-red-950);
-  }
   .text-white {
     color: var(--color-white);
   }
