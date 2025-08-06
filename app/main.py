@@ -36,6 +36,7 @@ current_voted_player: Dict[int, str] = {} # room_is -> voted player
 current_vote_counts: Dict[int, Dict[str, int]] = {} # room_id -> {player_name -> number of votes}
 current_valid_voting: Dict[int, bool] = {} # room_id -> valid voting
 current_liar: Dict[int, str] = {} # room_id -> actual liar
+current_diff_points: Dict[int, Dict[str, int]] = {}
 
 with open('app/question_pool.txt', 'r', encoding='utf-8') as file:
     questions_pool = [line.strip() for line in file if line.strip()]
@@ -88,19 +89,27 @@ async def broadcast_show_points(room_id: int):
     rooms_state[room_id] = State.POINTS
     liar = current_liar.get(room_id)
     voted = current_voted_player.get(room_id)
+    current_votes_ = current_votes.get(room_id)
+    prev_points = rooms.get(room_id, {}).copy()
 
     if voted != liar:
         rooms[room_id][liar] += 3
-    else:
-        for player in rooms[room_id]:
-            if player != liar:
-                rooms[room_id][player] += 1
+
+    for player in rooms[room_id]:
+        if player == liar:
+            continue
+        if current_votes_[player] == liar:
+            rooms[room_id][player] += 1
 
     points = rooms.get(room_id, {})
+    diff = {player: points.get(player, 0) - prev_points.get(player, 0) for player in set(prev_points) | set(points)}
+    print("Diff: ", diff)
+    current_diff_points[room_id] = diff
     message = {
         "action": "show_points",
         "points": points,
-        "liar": liar
+        "liar": liar,
+        "diff": diff
     }
     for ws in connections.get(room_id, []):
         try:
@@ -342,6 +351,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 valid_voting = current_valid_voting[room_id]
                 points = rooms.get(room_id, {})
                 liar = current_liar.get(room_id)
+                diff = current_diff_points.get(room_id, {})
                 data = {
                     "action": "state",
                     "state": "POINTS",
@@ -355,7 +365,8 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                     "votes_count": votes_count,
                     "valid_voting": valid_voting,
                     "points": points,
-                    "liar": liar
+                    "liar": liar,
+                    "diff": diff
                 }
                 await sendPackage(websocket, data)
 

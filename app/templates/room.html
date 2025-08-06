@@ -428,7 +428,7 @@
             });
     }
 
-    function setShowingPointsState(points, liar) {
+    function setShowingPointsState(points, liar, diff) {
         showHeader();
         hideRevealedAnswer();
         showPlayersList();
@@ -458,11 +458,17 @@
                 pointsDiv.className = "w-1/2 bg-gray-800 text-white font-semibold py-4 px-8 rounded-4xl text-6xl text-center";
 
                 // Check if name exists in the points object
+                let points_text = "";
                 if (points.hasOwnProperty(name)) {
-                    pointsDiv.textContent = points[name];
+                    points_text = points[name];
                 } else {
-                    pointsDiv.textContent = 0;
+                    points_text = "0";
                 }
+
+                if (diff[name] !== 0)
+                    pointsDiv.textContent = points_text + " (+" + diff[name] + ")";
+                else
+                    pointsDiv.textContent = points_text;
 
                 if (name === liar) {
                     nameDiv.classList.remove("text-white")
@@ -521,7 +527,7 @@
         }
 
         if (data.action === "show_points") {
-            setShowingPointsState(data.points, data.liar);
+            setShowingPointsState(data.points, data.liar, data.diff);
         }
 
         if (data.action === "votes_submitted") {
@@ -559,7 +565,7 @@
                     setDiscusionState(data.real_question);
                     setVotingState(data.already_voted, data.your_vote);
                     setVotingResultState(data.votes_count, data.valid_voting);
-                    setShowingPointsState(data.points, data.liar);
+                    setShowingPointsState(data.points, data.liar, data.diff);
                     break;
                 default:
                     const alert_m = "Not implemented: " + data.state;
