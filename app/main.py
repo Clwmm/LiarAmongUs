@@ -147,6 +147,8 @@ async def join_room(room_id: int = Form(...), name: str = Form(...)):
     if room_id in rooms and name in rooms[room_id]:
         return RedirectResponse(f"/?error=Name%20already%20taken%20in%20Room%20{room_id}", status_code=302)
 
+    if room_id in rooms_state and rooms_state[room_id] is not State.ROOM:
+        return RedirectResponse(f"/?error=Game%20already%20started%20in%20Room%20{room_id}", status_code=302)
     if room_id not in rooms:
         rooms[room_id] = {}
     rooms[room_id][name] = 0  # Initialize with 0 points
