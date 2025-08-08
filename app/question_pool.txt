@@ -1,28 +1,20 @@
 Kto najczęściej kończy imprezę jako ostatni?
-Kto najczęściej zagaduje nieznajomych na imprezach?
 Kto najlepiej śpiewa karaoke (nawet jeśli tylko według siebie)?
 Kto najczęściej ma kaca dnia następnego?
-Kto najczęściej znika z imprezy bez pożegnania?
 Kto potrafiłby wypić najwięcej shotów z rzędu?
 Kto najpewniej zrobiłby sobie tatuaż pod wpływem impulsu?
 Kto najbardziej się wygłupia, gdy trochę wypije?
 Kto tańczy tak, jakby nikt nie patrzył – mimo że patrzą wszyscy?
 Kto najpewniej zapomni, co się działo wczoraj?
 Kto zawsze ma porządek w telefonie, komputerze, kalendarzu?
-Kto najczęściej spóźnia się na spotkania?
 Kto najczęściej zaczyna dietę "od poniedziałku"?
 Kto byłby najbardziej zorganizowanym współlokatorem?
 Kto najczęściej mówi: „już wychodzę”, będąc jeszcze w łóżku?
 Kto potrafiłby żyć bez internetu przez tydzień?
-Kto najczęściej zamawia jedzenie na dowóz?
 Kto najchętniej przeniósłby się na wieś i hodował kozy?
 Kto najczęściej kupuje rzeczy, których nie potrzebuje?
 Kto najpewniej zgubiłby się bez GPS?
-Kto najprędzej pomyliłby sól z cukrem?
-Kto miałby największe szanse dać się wrobić w coś przez przypadek?
 Kto zrobiłby największe show ze złamanym paznokciem?
-Kto najchętniej zrobiłby dramę o byle co?
-Kto zachowuje się jak bohater serialu, nawet w sklepie?
 Kto najprędzej przewróci się na płaskim chodniku?
 Kto najczęściej przewraca oczami?
 Kto jest zawsze głodny, nawet po obiedzie?
@@ -32,7 +24,6 @@ Kto najłatwiej się zakochuje?
 Kto jest najbardziej romantyczny?
 Kto najczęściej ghostuje ludzi?
 Kto byłby idealnym partnerem w związku?
-Kto miał najwięcej dziwnych randek?
 Kto najczęściej daje innym dobre rady (nawet nieproszone)?
 Kto najdłużej wytrzymałby w celibacie?
 Kto najpewniej zaprosiłby eks na imprezę?
@@ -40,7 +31,6 @@ Kto zawsze wraca do tej jednej osoby, o której powinien zapomnieć?
 Kto zrobiłby najbardziej spektakularne oświadczyny?
 Kto najprawdopodobniej zostanie prezesem firmy?
 Kto z nas zostanie milionerem jako pierwszy?
-Kto by został influencerem fitnessu?
 Kto założy startup i sprzeda go za miliony?
 Kto byłby najlepszym nauczycielem?
 Kto najprędzej wyjedzie za granicę „na zawsze”?
@@ -52,69 +42,123 @@ Kto przetrwałby apokalipsę zombie najdłużej?
 Kto pierwszy by się poddał w sytuacji survivalowej?
 Kto byłby najlepszym bohaterem filmu akcji?
 Kto zostałby czarnym charakterem w bajce Disneya?
-Kto najpewniej znalazłby skarb ukryty pod ziemią?
-Kto zostałby królem/królową własnego państwa?
-Kto najprawdopodobniej uciekłby z więzienia?
-Kto najdłużej udawałby, że jest kosmitą, żeby nie płacić podatków?
-Kto najlepiej grałby w horrorze?
 Kto zostałby tajnym agentem?
 Kto był największym kujonem w szkole?
 Kto najczęściej ściągał na sprawdzianach?
-Kto zawsze dostawał uwagę za gadanie?
-Kto miał najdziwniejszy pseudonim w szkole?
-Kto był najbardziej zbuntowanym nastolatkiem?
 Kto najczęściej wagarował?
-Kto był najbardziej lubiany przez nauczycieli?
-Kto najczęściej miał odpisywane zadania?
-Kto najdłużej chodził z plecakiem z kółkami?
-Kto miał najbardziej szalone wypracowania?
 Kto ma najbardziej nieprzewidywalny tryb życia?
 Kto potrafiłby żyć tylko na kawie?
 Kto najczęściej chodzi w dresie?
-Kto ma zawsze najdziwniejszy budzik?
 Kto spałby cały dzień, gdyby mógł?
 Kto potrzebuje najwięcej czasu, żeby się ogarnąć rano?
-Kto ma zawsze przy sobie powerbank?
 Kto najczęściej robi zakupy "na szybko" i zapomina połowy?
 Kto ma w pokoju najbardziej kreatywny bałagan?
 Kto nigdy nie ma przy sobie gotówki?
 Kto zawsze ma coś do jedzenia przy sobie?
 Kto najczęściej zamawia to samo w restauracji?
-Kto zje wszystko, byle było ostre?
-Kto najbardziej wybrzydza przy jedzeniu?
 Kto zna wszystkie najlepsze knajpy w mieście?
 Kto potrafi ugotować coś z niczego?
 Kto najczęściej mówi „nie jestem głodny”, a zjada połowę?
 Kto najczęściej je późno w nocy?
 Kto żyłby tylko na słodyczach?
-Kto najczęściej przypala jedzenie?
 Kto najpewniej kiedyś rozmawiał z nieznajomym jakby to był stary znajomy?
 Kto pomylił kierunek autobusu i pojechał gdzieś zupełnie indziej?
-Kto kiedyś zasnął w dziwnym miejscu?
-Kto rozlał coś ważnego na laptopa?
-Kto przez przypadek zablokował się w toalecie?
-Kto zostawił coś cennego w Uberze?
-Kto przez pomyłkę napisał wiadomość do złej osoby?
-Kto kiedyś zgubił się w galerii handlowej?
-Kto przypadkowo wziął czyjś kubek z kawą?
-Kto byłby zdolny przypadkowo wejść do czyjegoś mieszkania?
+Kto najczęściej zasypia w dziwnych miejscach?
 Kto z nas najprędzej zdradziłby w związku, ale nie przyznałby się do tego?
-Kto najczęściej gada za plecami innych?
 Kto byłby gotów zrobić coś naprawdę dziwnego za duże pieniądze – ale nigdy nie powiedzieć co?
 Kto najczęściej udaje, że czegoś nie wie, żeby uniknąć odpowiedzialności?
 Kto z nas byłby w stanie manipulować innymi, żeby osiągnąć swoje?
-Kto najprędzej zacząłby romans z czyimś partnerem/partnerką (nawet jeśli przypadkiem)?
-Kto najwięcej ściemnia w social mediach, udając lepsze życie niż naprawdę ma?
-Kto najczęściej przekracza granice, ale potem mówi „to tylko żart”?
 Kto byłby najbardziej skłonny wykorzystać znajomości do nie do końca legalnych rzeczy?
-Kto z nas wygląda na niewinnego, ale ma najbardziej mroczne tajemnice?
 Kto z nas najprawdopodobniej miałby najwięcej przygód na jedną noc?
 Kto najchętniej spróbowałby seksu w miejscu publicznym?
-Kto z nas prawdopodobnie ogląda najwięcej porno?
-Kto wygląda niewinnie, ale pewnie w łóżku zaskakuje najbardziej?
 Kto miałby największą kolekcję zabawek erotycznych?
 Kto z nas najchętniej opowiedziałby pikantne szczegóły ze swojego życia intymnego?
 Kto miał najwięcej partnerów seksualnych?
 Kto z nas byłby skłonny spróbować seksu grupowego?
-Kto najczęściej myśli o seksie, nawet w najmniej odpowiednich momentach?
 Kto najprawdopodobniej miał lub chciałby mieć seks w pracy?
+Kto najczęściej spóźnia się na spotkania?
+Kto najchętniej zrobiłby dramę o byle co?
+Kto napisałby do byłego po kilku drinkach?
+Kto udawałby chorego, żeby nie iść do pracy?
+Kto mógłby zapomnieć o własnych urodzinach?
+Kto zrobiłby scenę w restauracji?
+Kto ma największe szanse trafić do więzienia?
+Kto wydałby wszystkie pieniądze w jeden dzień?
+Kto pierwszy zginąłby w horrorze?
+Kto miałby romans w pracy?
+Kto zatańczyłby na stole na imprezie?
+Kto wylądowałby w programie reality show?
+Kto poszedłby na randkę tylko dla darmowego jedzenia?
+Kto z nas byłby najlepszym kłamcą?
+Kto pierwszy przyznałby się do zdrady?
+Kto najczęściej zgubiłby telefon?
+Kto najdłużej byłby singlem z wyboru?
+Kto napisałby pijaną wiadomość do niewłaściwej osoby?
+Kto flirtuje z każdym barmanem/kelnerką?
+Kto najczęściej robi sobie selfie w łazience?
+Kto najłatwiej wplątałby się w bójkę?
+Kto zaprosiłby na imprezę przypadkowych ludzi z ulicy?
+Kto najwięcej narzeka na życie?
+Kto z nas ma największe ego?
+Kto zatańczyłby z obcą osobą na środku ulicy?
+Kto kupiłby coś kompletnie bezużytecznego za dużo pieniędzy?
+Kto z nas mógłby zostać striptizerem/striptizerką?
+Kto wyszedłby z imprezy bez pożegnania?
+Kto mógłby uciec sprzed ołtarza?
+Kto zrobiłby tatuaż po pijaku?
+Kto z nas ma największą szansę na bogatego partnera?
+Kto kupiłby bilet w jedną stronę i wyjechał?
+Kto byłby najlepszym szefem mafii?
+Kto z nas mógłby wygrać konkurs jedzenia na czas?
+Kto zasnąłby w klubie?
+Kto ma największe szanse na przypadkowe małżeństwo w Vegas?
+Kto najczęściej przeklina?
+Kto zrobiłby sobie zdjęcie w trumnie dla żartu?
+Kto najczęściej kończy drinka innej osoby?
+Kto zatańczyłby w deszczu bez powodu?
+Kto byłby najbardziej zazdrosnym partnerem?
+Kto zrobiłby sobie operację plastyczną?
+Kto najczęściej robi dramę na grupowym czacie?
+Kto z nas mógłby mieć sekretną drugą rodzinę?
+Kto założyłby OnlyFans?
+Kto najczęściej zapomina, co mówił 5 minut temu?
+Kto najchętniej przygarnąłby dzikie zwierzę?
+Kto wdałby się w romans z nauczycielem/trenerem?
+Kto najczęściej komentuje wygląd innych?
+Kto z nas mógłby zamieszkać w klubie?
+Kto najczęściej wysyła przypadkowe zdjęcia?
+Kto zdradziłby przyjaciela dla pieniędzy?
+Kto mógłby wziąć ślub dla wizy?
+Kto byłby najbardziej wkurzającym współlokatorem?
+Kto mógłby pojechać na wakacje i nie wrócić?
+Kto flirtowałby z partnerem przyjaciela?
+Kto z nas mógłby mieć tajny tatuaż w dziwnym miejscu?
+Kto kłamałby na temat swojej pracy?
+Kto z nas mógłby mieć trójkąt?
+Kto najchętniej zamieszkałby w luksusowym hotelu na zawsze?
+Kto pije najwięcej alkoholu?
+Kto mógłby zostać influencerem fitnesowym, nie trenując ani razu?
+Kto najczęściej psuje wspólne zdjęcia?
+Kto włączyłby się do rozmowy obcych ludzi?
+Kto mógłby rozstać się przez SMS?
+Kto z nas najczęściej prowokuje kłótnie?
+Kto opowiada największe głupoty po alkoholu?
+Kto miałby największe szanse na zostanie sugar baby?
+Kto ma najbardziej absurdalne marzenia?
+Kto najczęściej myli imiona ludzi?
+Kto byłby najgorszym kierowcą?
+Kto pierwszy wyłożyłby sekrety całej grupy w telewizji?
+Kto zamówiłby pizzę o 6 rano?
+Kto mógłby mieć ukryte konto w aplikacji randkowej?
+Kto z nas mógłby mieć nagie zdjęcia w telefonie kogoś innego?
+Kto przyznałby się do swoich fantazji wprost?
+Kto byłby najlepszym szantażystą?
+Kto ma największe szanse na zostanie celebrytą?
+Kto z nas mógłby sprzedać swoją bieliznę w internecie?
+Kto całowałby się na pierwszej randce bez pytania?
+Kto wyszedłby z domu w piżamie i nie zauważył?
+Kto mógłby umawiać się z kilkoma osobami naraz?
+Kto byłby najbardziej wkurzającym uczestnikiem reality show?
+Kto najczęściej nie odpisuje na wiadomości?
+Kto mógłby złamać komuś serce i spać spokojnie?
+Kto byłby gotów wyjechać z obcą osobą po jednym dniu znajomości?

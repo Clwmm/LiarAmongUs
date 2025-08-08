@@ -10,6 +10,7 @@ import random
 import asyncio
 from typing import List, Dict
 import threading
+import time
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -286,6 +287,8 @@ async def broadcast_next_round(room_id: int):
 
     rooms_state[room_id] = State.ANSWER
 
+    random.seed(time.time())
+
     # Pick two indexes
     same_idx, odd_idx = random.sample(available_indexes, 2)
     same_q = questions_pool[same_idx]
@@ -299,7 +302,7 @@ async def broadcast_next_round(room_id: int):
     odd_player = random.choice(players)
     current_liar[room_id] = odd_player
 
-    # Store used indexes, not the strings
+    # Store used indexes
     used_questions[room_id] = used + [same_idx, odd_idx]
 
     data = {"action": "ping_start_game"}
@@ -310,6 +313,7 @@ async def broadcast_next_round(room_id: int):
             pass
 
     return JSONResponse({"message": f"Game started."})
+
 
 
 @app.post("/start_game/{room_id}")
